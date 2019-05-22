@@ -2,6 +2,9 @@
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Toolkit;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileFilter;
@@ -29,14 +32,29 @@ public class insertNewItemWindow extends javax.swing.JFrame {
     private String user_name = "";
     private storageTabs st;
     private String path = "";
+    private WindowListener exitListener;
 
     /**
      * Creates new form insertNewItemWindow
      */
     public insertNewItemWindow() {
+        this.exitListener = new WindowAdapter() {
+            
+            @Override
+            public void windowClosing(WindowEvent e) {
+                int confirm = JOptionPane.showOptionDialog(
+                        null, "Abort insert new item?",
+                        "Exit Confirmation", JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE, null, null, null);
+                if (confirm == 0) {
+                    cancelOperation();
+                }
+            }
+        };
         initComponents();
         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
         this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
+        this.addWindowListener(exitListener);
     }
 
     public void setST(storageTabs s) {
@@ -81,6 +99,18 @@ public class insertNewItemWindow extends javax.swing.JFrame {
 
         return resizedImage;
     }
+    
+    private void cancelOperation(){
+        if (!this.path.equals("")) {
+            File file = new File(this.path);
+            if (file.delete()) {
+                System.out.println("File deleted successfully");
+            } else {
+                System.out.println("Failed to delete the file");
+            }
+        }
+        this.setVisible(false);
+    }
 
     public void isBaz() {
         this.pn_jLabel5.setText("IAF number :");
@@ -123,8 +153,8 @@ public class insertNewItemWindow extends javax.swing.JFrame {
         las_jTextField7 = new javax.swing.JTextField();
         comments_jLabel8 = new javax.swing.JLabel();
         comments_jTextField8 = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        cancel_jButton1 = new javax.swing.JButton();
+        insert_jButton2 = new javax.swing.JButton();
         qas_jLabel10 = new javax.swing.JLabel();
         sb_jLabel9 = new javax.swing.JLabel();
         comments_jLabel9 = new javax.swing.JLabel();
@@ -144,7 +174,7 @@ public class insertNewItemWindow extends javax.swing.JFrame {
             .addComponent(jFileChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Insert new item");
         setResizable(false);
 
@@ -226,17 +256,17 @@ public class insertNewItemWindow extends javax.swing.JFrame {
             }
         });
 
-        jButton1.setText("cancel");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        cancel_jButton1.setText("cancel");
+        cancel_jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                cancel_jButton1ActionPerformed(evt);
             }
         });
 
-        jButton2.setText("insert");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        insert_jButton2.setText("insert");
+        insert_jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                insert_jButton2ActionPerformed(evt);
             }
         });
 
@@ -249,6 +279,7 @@ public class insertNewItemWindow extends javax.swing.JFrame {
         comments_jLabel9.setFont(new java.awt.Font("Arial", 1, 14)); // NOI18N
         comments_jLabel9.setText("Picture :");
 
+        browse_jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/kisspng-computer-icons-download-android-5ae0ca3c68c6e5.0123531015246812764292.png"))); // NOI18N
         browse_jButton1.setText("Browse");
         browse_jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -275,6 +306,7 @@ public class insertNewItemWindow extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
+        life_cam_jButton3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/download.jpg"))); // NOI18N
         life_cam_jButton3.setText("LifeCam");
         life_cam_jButton3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -335,9 +367,9 @@ public class insertNewItemWindow extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(image_jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 142, Short.MAX_VALUE)
-                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                .addComponent(insert_jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(cancel_jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -393,8 +425,8 @@ public class insertNewItemWindow extends javax.swing.JFrame {
                         .addComponent(image_jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(46, 46, 46)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButton2)
-                            .addComponent(jButton1))))
+                            .addComponent(insert_jButton2)
+                            .addComponent(cancel_jButton1))))
                 .addContainerGap())
         );
 
@@ -437,20 +469,12 @@ public class insertNewItemWindow extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_comments_jTextField8ActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void cancel_jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancel_jButton1ActionPerformed
         // TODO add your handling code here:
-        if (!this.path.equals("")) {
-            File file = new File(this.path);
-            if (file.delete()) {
-                System.out.println("File deleted successfully");
-            } else {
-                System.out.println("Failed to delete the file");
-            }
-        }
-        this.setVisible(false);
-    }//GEN-LAST:event_jButton1ActionPerformed
+        this.cancelOperation();
+    }//GEN-LAST:event_cancel_jButton1ActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+    private void insert_jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_insert_jButton2ActionPerformed
         // TODO add your handling code here:
         if (this.name_jTextField.getText().equals("")
                 || this.pn_jTextField1.getText().equals("") || this.sn_jTextField2.getText().equals("")
@@ -482,14 +506,14 @@ public class insertNewItemWindow extends javax.swing.JFrame {
                     System.out.println("Failed to delete the file");
                 }
             }
-            temp = db.setImage(is_update, this.user_name, this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name, this.path.replace("\\", "\\\\"));
+            temp = db.setImage(is_update, this.user_name, this.name_jTextField.getText() , this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name, this.path.replace("\\", "\\\\"));
             if (temp instanceof Exception) {
                 JOptionPane.showMessageDialog(null, "Failed to save image \n " + ((Exception) temp).getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);
             } else {
                 JOptionPane.showMessageDialog(null, "Image upload successful!", "information", JOptionPane.INFORMATION_MESSAGE);
             }
         }
-    }//GEN-LAST:event_jButton2ActionPerformed
+    }//GEN-LAST:event_insert_jButton2ActionPerformed
 
     private void browse_jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_browse_jButton1ActionPerformed
         // TODO add your handling code here:
@@ -622,14 +646,14 @@ public class insertNewItemWindow extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton browse_jButton1;
+    private javax.swing.JButton cancel_jButton1;
     private javax.swing.JLabel comments_jLabel8;
     private javax.swing.JLabel comments_jLabel9;
     private javax.swing.JTextField comments_jTextField8;
     private javax.swing.JPanel file_jPanel1;
     private javax.swing.JLabel image_jLabel2;
     private javax.swing.JPanel image_jPanel2;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
+    private javax.swing.JButton insert_jButton2;
     private javax.swing.JFileChooser jFileChooser1;
     private javax.swing.JLabel las_jLabel7;
     private javax.swing.JTextField las_jTextField7;

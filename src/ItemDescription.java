@@ -3,6 +3,9 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileFilter;
@@ -14,7 +17,11 @@ import javax.activation.MimetypesFileTypeMap;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 /*
@@ -22,32 +29,76 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 /**
  *
  * @author Itzik
  */
 public class ItemDescription extends javax.swing.JFrame {
+
     private DataBase db;
     private String table_name = "";
     private String user_name = "";
     private String path = "";
     private String id = "";
     private boolean isAdmin = false;
-    private boolean choose = false;
+    private boolean somthing_changed = false;
+    private WindowListener exitListener;
+    private String[] item_data = null;
+    private JTextField[] item_parms = null;
+    private storageTabs main = null;
+    private String image_id = "";
 
     /**
      * Creates new form ItemDescription
      */
     public ItemDescription() {
         initComponents();
+        this.item_parms = new JTextField[9];
+        item_parms[0] = this.name_jTextField;
+        item_parms[1] = this.pn_jTextField1;
+        item_parms[2] = this.sn_jTextField2;
+        item_parms[3] = this.prn_jTextField3;
+        item_parms[4] = this.qas_jTextField4;
+        item_parms[5] = this.sb_jTextField5;
+        item_parms[6] = this.qasys_jTextField6;
+        item_parms[7] = this.las_jTextField7;
+        item_parms[8] = this.comments_jTextField8;
+
+        this.exitListener = new WindowAdapter() {
+
+            @Override
+            public void windowClosing(WindowEvent e) {
+                for (int i = 0; i < item_data.length; i++) {
+                    if (!somthing_changed && !item_data[i].equals(item_parms[i].getText())) {
+                        somthing_changed = true;
+                    }
+                }
+                if (somthing_changed) {
+                    int confirm = JOptionPane.showOptionDialog(
+                            null, "Discard item description changes?",
+                            "Exit Confirmation", JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE, null, null, null);
+                    if (confirm == 0) {
+                        cancelOperation();
+                    }
+                } else {
+                    main.closeItemDescFrame(id);
+                    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+                }
+            }
+        };
+
         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-        this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
-        this.save_jButton1.setVisible(false);
-        this.cancel_jButton1.setVisible(false);
+        this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
+        this.addWindowListener(exitListener);
     }
-    
-    public void inserData(String[] data){
+
+    public void intialMain(storageTabs frame) {
+        this.main = frame;
+    }
+
+    public void inserData(String[] data) {
+        this.item_data = data;
         this.update_jButton.setVisible(isAdmin);
         this.name_jTextField.setEditable(isAdmin);
         this.pn_jTextField1.setEditable(isAdmin);
@@ -69,50 +120,82 @@ public class ItemDescription extends javax.swing.JFrame {
         this.comments_jTextField8.setText(data[8]);
         loadImage();
     }
-    
-    public void loadImage(){
+
+    public void loadImage() {
         String path = db.getImagePath(this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name);
-        if(path != null){
+        if (path != null) {
             this.image_jLabel1.setIcon(new ImageIcon(path));
         }
     }
-    
+
     public void setAdmin(boolean state) {
         this.isAdmin = state;
-        this.set_image_jButton1.setVisible(isAdmin);
+        this.browse_jButton1.setVisible(isAdmin);
+        this.life_cam_jButton1.setVisible(isAdmin);
     }
-    
-    
-    public void setDB(DataBase d){
+
+    public void setDB(DataBase d) {
         this.db = d;
     }
-    
-    public void isBaz(){
+
+    public void isBaz() {
         this.pn_jLabel5.setText("IAF number :");
         this.sb_jLabel9.setText("Loan from IAF :");
         this.qasys_jLabel6.setText("Aircraft type :");
     }
-    
-    public void setTableName(String name){
+
+    public void setTableName(String name) {
         this.table_name = name;
     }
-    
-    public void setUserName(String name){
+
+    private File lastFileModified(String dir) {
+        File fl = new File(dir);
+        File[] files = fl.listFiles(new FileFilter() {
+            public boolean accept(File file) {
+                return file.isFile();
+            }
+        });
+        long lastMod = Long.MIN_VALUE;
+        File choice = null;
+        for (File file : files) {
+            if (file.lastModified() > lastMod) {
+                choice = file;
+                lastMod = file.lastModified();
+            }
+        }
+        return choice;
+    }
+
+    public void setUserName(String name) {
         this.user_name = name;
     }
-    
-    public void setID(String id){
+
+    public void setID(String id) {
         this.id = id;
     }
-    
-    private boolean isImage(File f ){
+
+    private boolean isImage(File f) {
         try {
             return ImageIO.read(f) != null;
         } catch (Exception e) {
             return false;
         }
     }
-    
+
+    private void cancelOperation() {
+        if (!this.path.equals("")) {
+            File file = new File(this.path);
+            if (file.delete()) {
+                System.out.println("File deleted successfully");
+            } else {
+                System.out.println("Failed to delete the file");
+            }
+        }
+        this.image_jLabel1.setIcon(null);
+        this.setVisible(false);
+        main.closeItemDescFrame(this.id);
+    }
+
     private static BufferedImage resizeImage(BufferedImage originalImage, int type, int IMG_WIDTH, int IMG_HEIGHT) {
         BufferedImage resizedImage = new BufferedImage(IMG_WIDTH, IMG_HEIGHT, type);
         Graphics2D g = resizedImage.createGraphics();
@@ -121,6 +204,7 @@ public class ItemDescription extends javax.swing.JFrame {
 
         return resizedImage;
     }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -151,13 +235,12 @@ public class ItemDescription extends javax.swing.JFrame {
         sb_jLabel9 = new javax.swing.JLabel();
         pn_jLabel5 = new javax.swing.JLabel();
         comments_jLabel9 = new javax.swing.JLabel();
-        set_image_jButton1 = new javax.swing.JButton();
+        browse_jButton1 = new javax.swing.JButton();
         image_jPanel2 = new javax.swing.JPanel();
         image_jLabel1 = new javax.swing.JLabel();
-        cancel_jButton1 = new javax.swing.JButton();
-        save_jButton1 = new javax.swing.JButton();
         update_jButton = new javax.swing.JButton();
         cancel_operation_jButton1 = new javax.swing.JButton();
+        life_cam_jButton1 = new javax.swing.JButton();
 
         javax.swing.GroupLayout file_jPanel1Layout = new javax.swing.GroupLayout(file_jPanel1);
         file_jPanel1.setLayout(file_jPanel1Layout);
@@ -170,8 +253,9 @@ public class ItemDescription extends javax.swing.JFrame {
             .addComponent(jFileChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Item Description");
+        setResizable(false);
 
         qasys_jTextField6.setEditable(false);
         qasys_jTextField6.addActionListener(new java.awt.event.ActionListener() {
@@ -266,10 +350,11 @@ public class ItemDescription extends javax.swing.JFrame {
         comments_jLabel9.setFont(new java.awt.Font("Arial", 1, 14)); // NOI18N
         comments_jLabel9.setText("Picture :");
 
-        set_image_jButton1.setText("Choose image");
-        set_image_jButton1.addActionListener(new java.awt.event.ActionListener() {
+        browse_jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/kisspng-computer-icons-download-android-5ae0ca3c68c6e5.0123531015246812764292.png"))); // NOI18N
+        browse_jButton1.setText("Browse");
+        browse_jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                set_image_jButton1ActionPerformed(evt);
+                browse_jButton1ActionPerformed(evt);
             }
         });
 
@@ -292,20 +377,6 @@ public class ItemDescription extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        cancel_jButton1.setText("Cancel image");
-        cancel_jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cancel_jButton1ActionPerformed(evt);
-            }
-        });
-
-        save_jButton1.setText("Save image");
-        save_jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                save_jButton1ActionPerformed(evt);
-            }
-        });
-
         update_jButton.setText("update");
         update_jButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -320,6 +391,14 @@ public class ItemDescription extends javax.swing.JFrame {
             }
         });
 
+        life_cam_jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/download.jpg"))); // NOI18N
+        life_cam_jButton1.setText("LifeCam");
+        life_cam_jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                life_cam_jButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -328,66 +407,59 @@ public class ItemDescription extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(comments_jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                        .addGap(0, 0, Short.MAX_VALUE)
-                                        .addComponent(update_jButton)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(cancel_operation_jButton1))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addGroup(layout.createSequentialGroup()
-                                                .addComponent(set_image_jButton1)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(save_jButton1)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(cancel_jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                            .addComponent(image_jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                        .addGap(0, 17, Short.MAX_VALUE))))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(comments_jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(24, 24, 24)
-                                .addComponent(comments_jTextField8, javax.swing.GroupLayout.PREFERRED_SIZE, 280, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(comments_jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(24, 24, 24)
+                        .addComponent(comments_jTextField8, javax.swing.GroupLayout.PREFERRED_SIZE, 280, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(28, 28, 28))
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                .addComponent(name_jLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(88, 88, 88)
-                                .addComponent(name_jTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 280, Short.MAX_VALUE))
-                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                .addComponent(pn_jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(34, 34, 34)
-                                .addComponent(pn_jTextField1))
-                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                .addComponent(sn_jLabel2)
-                                .addGap(39, 39, 39)
-                                .addComponent(sn_jTextField2))
-                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                .addComponent(pn_jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(25, 25, 25)
-                                .addComponent(prn_jTextField3))
-                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                .addComponent(qas_jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(9, 9, 9)
-                                .addComponent(qas_jTextField4))
-                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                .addComponent(sb_jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(25, 25, 25)
-                                .addComponent(sb_jTextField5))
-                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                .addComponent(qasys_jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(9, 9, 9)
-                                .addComponent(qasys_jTextField6))
-                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                .addComponent(las_jLabel7)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(las_jTextField7)))
-                        .addGap(0, 0, Short.MAX_VALUE))))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(comments_jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                        .addComponent(life_cam_jButton1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(browse_jButton1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                                .addGap(16, 16, 16)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(update_jButton)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(cancel_operation_jButton1))
+                                    .addComponent(image_jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                    .addComponent(name_jLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGap(88, 88, 88)
+                                    .addComponent(name_jTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 280, Short.MAX_VALUE))
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                    .addComponent(pn_jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGap(34, 34, 34)
+                                    .addComponent(pn_jTextField1))
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                    .addComponent(sn_jLabel2)
+                                    .addGap(39, 39, 39)
+                                    .addComponent(sn_jTextField2))
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                    .addComponent(pn_jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGap(25, 25, 25)
+                                    .addComponent(prn_jTextField3))
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                    .addComponent(qas_jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGap(9, 9, 9)
+                                    .addComponent(qas_jTextField4))
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                    .addComponent(sb_jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGap(25, 25, 25)
+                                    .addComponent(sb_jTextField5))
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                    .addComponent(qasys_jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGap(9, 9, 9)
+                                    .addComponent(qasys_jTextField6))
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                    .addComponent(las_jLabel7)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(las_jTextField7))))
+                        .addGap(0, 62, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -430,18 +502,21 @@ public class ItemDescription extends javax.swing.JFrame {
                     .addComponent(comments_jTextField8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(comments_jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(comments_jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(browse_jButton1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(life_cam_jButton1))
                     .addComponent(image_jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(set_image_jButton1)
-                    .addComponent(save_jButton1)
-                    .addComponent(cancel_jButton1))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 19, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(update_jButton)
-                    .addComponent(cancel_operation_jButton1))
-                .addGap(16, 16, 16))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(16, 16, 16)
+                        .addComponent(update_jButton))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(18, 18, 18)
+                        .addComponent(cancel_operation_jButton1)))
+                .addContainerGap(32, Short.MAX_VALUE))
         );
 
         pack();
@@ -483,43 +558,33 @@ public class ItemDescription extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_sb_jTextField5ActionPerformed
 
-    private void set_image_jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_set_image_jButton1ActionPerformed
+    private void browse_jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_browse_jButton1ActionPerformed
         // TODO add your handling code here:
-        this.choose = true;
-        this.update_jButton.setVisible(false);
-        this.cancel_operation_jButton1.setVisible(false);
-        //this.save_jButton1.setVisible(true);
-        //this.cancel_jButton1.setVisible(true);
-        //this.set_image_jButton1.setVisible(false);
+        somthing_changed = true;
         this.jFileChooser1.addChoosableFileFilter(new FileNameExtensionFilter("Image files", ImageIO.getReaderFileSuffixes()));
         int returnVal = this.jFileChooser1.showOpenDialog(this.file_jPanel1);
         File file = this.jFileChooser1.getSelectedFile();
-        if(returnVal == JFileChooser.APPROVE_OPTION && file != null){
-            if(!isImage(file)){
+        if (returnVal == JFileChooser.APPROVE_OPTION && file != null) {
+            if (!isImage(file)) {
                 JOptionPane.showMessageDialog(null, "File must to be Image", "Alert", JOptionPane.ERROR_MESSAGE);
-                //this.save_jButton1.setVisible(false);
-                //this.cancel_jButton1.setVisible(false);
-                //this.set_image_jButton1.setVisible(true);
                 return;
             }
             try {
                 BufferedImage originalImage = ImageIO.read(file);//change path to where file is located
                 int type = originalImage.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : originalImage.getType();
 
-                BufferedImage resizeImageJpg = resizeImage(originalImage, type,this.image_jLabel1.getWidth(), this.image_jLabel1.getHeight());
+                BufferedImage resizeImageJpg = resizeImage(originalImage, type, this.image_jLabel1.getWidth(), this.image_jLabel1.getHeight());
                 File jarDir = new File(System.getProperty("user.dir"));
                 System.out.println(jarDir.getAbsolutePath());
-                File directory = new File(jarDir.getAbsolutePath()+"\\images");
-                if (! directory.exists()){
+                File directory = new File(jarDir.getAbsolutePath() + "\\images");
+                if (!directory.exists()) {
                     directory.mkdir();
                     // If you require it to make the entire directory path including parents,
                     // use directory.mkdirs(); here instead.
                 }
-                this.path = jarDir.getAbsolutePath()+"\\images\\"+this.pn_jTextField1.getText()+"_resized"+String.valueOf((Math.random() * (1000000 - 0)) + 0)+".jpg";
-                ImageIO.write(resizeImageJpg, "jpg", new File(path)); 
+                this.path = jarDir.getAbsolutePath() + "\\images\\" + this.pn_jTextField1.getText() + "_resized" + String.valueOf((Math.random() * (1000000 - 0)) + 0) + ".jpg";
+                ImageIO.write(resizeImageJpg, "jpg", new File(path));
                 this.image_jLabel1.setIcon(new ImageIcon(path));
-                this.update_jButton.setVisible(true);
-                this.cancel_operation_jButton1.setVisible(true);
             } catch (IOException ex) {
                 Logger.getLogger(ItemDescription.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -530,82 +595,113 @@ public class ItemDescription extends javax.swing.JFrame {
             //this.set_image_jButton1.setVisible(true);
         }*/
 
-    }//GEN-LAST:event_set_image_jButton1ActionPerformed
-
-    private void cancel_jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancel_jButton1ActionPerformed
-        // TODO add your handling code here:
-        if(!this.path.equals("")){
-            File file = new File(this.path);
-            if(file.delete()) 
-            { 
-                System.out.println("File deleted successfully"); 
-            } 
-            else
-            { 
-                System.out.println("Failed to delete the file"); 
-            } 
-        }
-        this.image_jLabel1.setIcon(null);
-        this.update_jButton.setVisible(true);
-        this.cancel_operation_jButton1.setVisible(true);
-        //this.save_jButton1.setVisible(false);
-        //this.cancel_jButton1.setVisible(false);
-        //this.set_image_jButton1.setVisible(true);
-    }//GEN-LAST:event_cancel_jButton1ActionPerformed
-
-    private void save_jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_save_jButton1ActionPerformed
-        // TODO add your handling code here:
-        boolean is_update = false;
-        String db_path = db.getImagePath(this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name);
-        if(db_path != null && !db_path.equals(this.path)){
-            is_update = true;
-            File file = new File(db_path);
-            if(file.delete()) 
-            { 
-                System.out.println("File deleted successfully"); 
-            } 
-            else
-            { 
-                System.out.println("Failed to delete the file"); 
-            } 
-        }
-        Object temp =db.setImage(is_update, this.user_name , this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name , this.path.replace("\\", "\\\\"));
-        if(temp instanceof Exception){
-            JOptionPane.showMessageDialog(null, "Failed to save image \n "+((Exception) temp).getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);
-        }
-        else{
-            JOptionPane.showMessageDialog(null, "Image upload successful!", "information", JOptionPane.INFORMATION_MESSAGE);
-        }
-        this.update_jButton.setVisible(true);
-        this.cancel_operation_jButton1.setVisible(true);
-    }//GEN-LAST:event_save_jButton1ActionPerformed
+    }//GEN-LAST:event_browse_jButton1ActionPerformed
 
     private void update_jButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_update_jButtonActionPerformed
         // TODO add your handling code here:
-        Object temp = this.db.updateItem(this.id , this.table_name, this.name_jTextField.getText(),
-                           this.pn_jTextField1.getText(), this.sn_jTextField2.getText(),
-                           this.prn_jTextField3.getText(), this.qas_jTextField4.getText(),
-                           this.sb_jTextField5.getText(), this.qasys_jTextField6.getText(),
-                           this.las_jTextField7.getText(), this.comments_jTextField8.getText() ,
-                           this.user_name);
-        if(this.choose){
-            this.save_jButton1ActionPerformed(evt);   
+        Object temp = this.db.updateItem(this.id, this.table_name, this.name_jTextField.getText(),
+                this.pn_jTextField1.getText(), this.sn_jTextField2.getText(),
+                this.prn_jTextField3.getText(), this.qas_jTextField4.getText(),
+                this.sb_jTextField5.getText(), this.qasys_jTextField6.getText(),
+                this.las_jTextField7.getText(), this.comments_jTextField8.getText(),
+                this.user_name);
+        for (int i = 0; i < item_data.length; i++) {
+            if (!somthing_changed && !item_data[i].equals(item_parms[i].getText())) {
+                somthing_changed = true;
+            }
         }
-        if(temp instanceof Exception){
-            JOptionPane.showMessageDialog(null, "Update item: '"+this.name_jTextField.getText()+"' failed \n "+((Exception) temp).getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);  
+        if (somthing_changed) {
+            this.image_id = db.getImageID(this.item_data[0], this.item_data[1], this.item_data[2], this.table_name);
+            if (image_id != null) {
+                this.db.updateChangesForImageDB(this.image_id, this.user_name, this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name, this.path.replace("\\", "\\\\"));
+            }
         }
-        else{
-            JOptionPane.showMessageDialog(null, "Update item: '"+this.name_jTextField.getText()+"' successful", "information", JOptionPane.INFORMATION_MESSAGE);
-            this.setVisible(false);        }
+        boolean is_update = false;
+        String db_path = db.getImagePath(this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name);
+        if (db_path != null && !db_path.equals(this.path)) {
+            is_update = true;
+            File file = new File(db_path);
+            if (file.delete()) {
+                System.out.println("File deleted successfully");
+            } else {
+                System.out.println("Failed to delete the file");
+            }
+        }
+        if (!this.path.equals("")) {
+            Object temp2 = db.setImage(is_update, this.user_name, this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name, this.path.replace("\\", "\\\\"));
+            if (temp2 instanceof Exception) {
+                JOptionPane.showMessageDialog(null, "Failed to save image \n " + ((Exception) temp2).getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(null, "Image upload successful!", "information", JOptionPane.INFORMATION_MESSAGE);
+            }
+        }
+        if (temp instanceof Exception) {
+            JOptionPane.showMessageDialog(null, "Update item: '" + this.name_jTextField.getText() + "' failed \n " + ((Exception) temp).getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(null, "Update item: '" + this.name_jTextField.getText() + "' successful", "information", JOptionPane.INFORMATION_MESSAGE);
+            this.setVisible(false);
+        }
+        main.closeItemDescFrame(id);
+        main.refreshFromOtherFrame();
     }//GEN-LAST:event_update_jButtonActionPerformed
 
     private void cancel_operation_jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancel_operation_jButton1ActionPerformed
         // TODO add your handling code here:
-        if(this.choose){
-            this.cancel_jButton1ActionPerformed(evt);
-        }
-        this.setVisible(false);
+        this.cancelOperation();
     }//GEN-LAST:event_cancel_operation_jButton1ActionPerformed
+
+    private void life_cam_jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_life_cam_jButton1ActionPerformed
+        // TODO add your handling code here:
+        somthing_changed = true;
+        Process process = null;
+        try {
+            process = Runtime.getRuntime().exec("C:\\Program Files (x86)\\Microsoft LifeCam\\LifeCam.exe");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        while (process.isAlive()) { // TODO: wait until the user close the program
+
+        }
+        if (!this.path.equals("")) {
+            File file = new File(this.path);
+            if (file.delete()) {
+                System.out.println("File deleted successfully");
+            } else {
+                System.out.println("Failed to delete the file");
+            }
+            this.image_jLabel1.setIcon(null);
+        }
+        File last_modified_file = this.lastFileModified("C:\\Users\\Elbit Storage\\Pictures\\LifeCam Files");
+        if (last_modified_file != null) {
+            if (!isImage(last_modified_file)) {
+                JOptionPane.showMessageDialog(null, "File must to be Image", "Alert", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            try {
+                BufferedImage originalImage = ImageIO.read(last_modified_file);//change path to where file is located
+                int type = originalImage.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : originalImage.getType();
+
+                BufferedImage resizeImageJpg = resizeImage(originalImage, type, this.image_jLabel1.getWidth(), this.image_jLabel1.getHeight());
+                File jarDir = new File(System.getProperty("user.dir"));
+                File directory = new File(jarDir.getAbsolutePath() + "\\images");
+                if (!directory.exists()) {
+                    directory.mkdir();
+                    // If you require it to make the entire directory path including parents,
+                    // use directory.mkdirs(); here instead.
+                }
+                this.path = jarDir.getAbsolutePath() + "\\images\\" + this.pn_jTextField1.getText() + "_resized" + String.valueOf((Math.random() * (1000000 - 0)) + 0) + ".jpg";
+                ImageIO.write(resizeImageJpg, "jpg", new File(path));
+                this.image_jLabel1.setIcon(new ImageIcon(path));
+                if (last_modified_file.delete()) {
+                    System.out.println("File deleted successfully");
+                } else {
+                    System.out.println("Failed to delete the file");
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(insertNewItemWindow.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_life_cam_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -643,7 +739,7 @@ public class ItemDescription extends javax.swing.JFrame {
 //    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton cancel_jButton1;
+    private javax.swing.JButton browse_jButton1;
     private javax.swing.JButton cancel_operation_jButton1;
     private javax.swing.JLabel comments_jLabel8;
     private javax.swing.JLabel comments_jLabel9;
@@ -654,6 +750,7 @@ public class ItemDescription extends javax.swing.JFrame {
     private javax.swing.JFileChooser jFileChooser1;
     private javax.swing.JLabel las_jLabel7;
     private javax.swing.JTextField las_jTextField7;
+    private javax.swing.JButton life_cam_jButton1;
     private javax.swing.JLabel name_jLabel;
     private javax.swing.JTextField name_jTextField;
     private javax.swing.JLabel pn_jLabel1;
@@ -664,10 +761,8 @@ public class ItemDescription extends javax.swing.JFrame {
     private javax.swing.JTextField qas_jTextField4;
     private javax.swing.JLabel qasys_jLabel6;
     private javax.swing.JTextField qasys_jTextField6;
-    private javax.swing.JButton save_jButton1;
     private javax.swing.JLabel sb_jLabel9;
     private javax.swing.JTextField sb_jTextField5;
-    private javax.swing.JButton set_image_jButton1;
     private javax.swing.JLabel sn_jLabel2;
     private javax.swing.JTextField sn_jTextField2;
     private javax.swing.JButton update_jButton;

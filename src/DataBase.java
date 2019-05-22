@@ -23,7 +23,7 @@ public class DataBase {
 
     String host = "localhost";
     String port = "3306";
-    String dbName = "elbitstorage";
+    String dbName = "elbitstoragetesting"; // "elbitstoragetesting"; 
 
     String username = "root";
     String pass = "root";
@@ -553,6 +553,7 @@ public class DataBase {
         }
     }
     
+    
     public synchronized String getImagePath(String name , String pn , String sn , String simulator) {
         init();
         ResultSet result = null;
@@ -572,6 +573,38 @@ public class DataBase {
             int columnsNumber = rsmd.getColumnCount();
             for (int i = 1; i <= columnsNumber; i++) {
                 if(rsmd.getColumnLabel(i).equals("image_path")){
+                    ans = result.getString(i);
+                }
+            }
+            return ans;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+        finally{
+            closeConnection();
+        }
+    }
+    
+    public synchronized String getImageID(String name , String pn , String sn , String simulator) {
+        init();
+        ResultSet result = null;
+        String str = "SELECT * FROM item_images"
+                    + " where name = '" + name + "'"
+                    + " and part_number = '" + pn + "'"
+                    + " and serial_number = '" + sn + "'"
+                    + " and simulator = '" + simulator + "';";
+        String ans = null ;
+        try {
+            result = stmt.executeQuery(str);
+            if (!result.isBeforeFirst()) {
+                return null; 
+            }
+            result.next();
+            ResultSetMetaData rsmd = result.getMetaData();
+            int columnsNumber = rsmd.getColumnCount();
+            for (int i = 1; i <= columnsNumber; i++) {
+                if(rsmd.getColumnLabel(i).equals("id")){
                     ans = result.getString(i);
                 }
             }
@@ -604,6 +637,29 @@ public class DataBase {
                     +"(name , part_number , serial_number , simulator , image_path)"
                     +"VALUES('"+name+"','"+pn+"','"+sn+"','"+simulator+"','"+image_path+"');";
         }
+        try {
+            stmt.executeUpdate(str);
+            String log = "INSERT INTO log (user , item , action , timestamp , simulator) VALUES ('"+creator+"' , '"+name+"' , '"+action+"' , '"+ new Timestamp(System.currentTimeMillis()).toString()+"' , 'DB');";
+            stmt.executeUpdate(log);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return e;
+        }
+        finally{
+            closeConnection();
+        }
+    }
+    
+    
+    public synchronized Object updateChangesForImageDB(String id , String creator , String name  , String pn , String sn , String simulator , String image_path) {
+        init();
+        String str = "";
+        String action = "";
+            action = "update item data at image DB";
+            str = "UPDATE item_images"
+                    +"  SET name = '"+name+"' , part_number ='"+pn+"' , serial_number = '"+sn+"'"
+                    + " where id = '" + id + "'";
         try {
             stmt.executeUpdate(str);
             String log = "INSERT INTO log (user , item , action , timestamp , simulator) VALUES ('"+creator+"' , '"+name+"' , '"+action+"' , '"+ new Timestamp(System.currentTimeMillis()).toString()+"' , 'DB');";

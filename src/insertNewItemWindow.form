@@ -23,7 +23,7 @@
     </Container>
   </NonVisualComponents>
   <Properties>
-    <Property name="defaultCloseOperation" type="int" value="2"/>
+    <Property name="defaultCloseOperation" type="int" value="0"/>
     <Property name="title" type="java.lang.String" value="Insert new item"/>
     <Property name="resizable" type="boolean" value="false"/>
   </Properties>
@@ -106,9 +106,9 @@
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="image_jPanel2" min="-2" max="-2" attributes="0"/>
                           <Group type="102" alignment="0" attributes="0">
-                              <Component id="jButton2" min="-2" pref="103" max="-2" attributes="0"/>
-                              <EmptySpace pref="142" max="32767" attributes="0"/>
-                              <Component id="jButton1" min="-2" pref="97" max="-2" attributes="0"/>
+                              <Component id="insert_jButton2" min="-2" pref="103" max="-2" attributes="0"/>
+                              <EmptySpace max="32767" attributes="0"/>
+                              <Component id="cancel_jButton1" min="-2" pref="97" max="-2" attributes="0"/>
                           </Group>
                       </Group>
                   </Group>
@@ -180,8 +180,8 @@
                       <Component id="image_jPanel2" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" pref="46" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="jButton2" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="jButton1" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="insert_jButton2" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="cancel_jButton1" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
               </Group>
@@ -301,20 +301,20 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="comments_jTextField8ActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JButton" name="jButton1">
+    <Component class="javax.swing.JButton" name="cancel_jButton1">
       <Properties>
         <Property name="text" type="java.lang.String" value="cancel"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton1ActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cancel_jButton1ActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JButton" name="jButton2">
+    <Component class="javax.swing.JButton" name="insert_jButton2">
       <Properties>
         <Property name="text" type="java.lang.String" value="insert"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton2ActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="insert_jButton2ActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="qas_jLabel10">
@@ -343,6 +343,9 @@
     </Component>
     <Component class="javax.swing.JButton" name="browse_jButton1">
       <Properties>
+        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+          <Image iconType="3" name="/kisspng-computer-icons-download-android-5ae0ca3c68c6e5.0123531015246812764292.png"/>
+        </Property>
         <Property name="text" type="java.lang.String" value="Browse"/>
       </Properties>
       <Events>
@@ -383,6 +386,9 @@
     </Container>
     <Component class="javax.swing.JButton" name="life_cam_jButton3">
       <Properties>
+        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+          <Image iconType="3" name="/download.jpg"/>
+        </Property>
         <Property name="text" type="java.lang.String" value="LifeCam"/>
       </Properties>
       <Events>

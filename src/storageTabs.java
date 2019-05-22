@@ -1,4 +1,6 @@
 
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -6,6 +8,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import javax.swing.Action;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -26,51 +29,50 @@ import javax.swing.text.DefaultEditorKit;
  *
  * @author Itzik
  */
-
 public class storageTabs extends javax.swing.JFrame {
 
     private boolean isAdmin;
-    DataBase db ;
+    DataBase db;
     private String _user = "";
+    private HashMap<String, ItemDescription> item_desc_map = new HashMap<String, ItemDescription>();
     private KeyListener kl = new KeyListener() {
-            @Override
-            public void keyTyped(KeyEvent ke) {
-                //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            }
+        @Override
+        public void keyTyped(KeyEvent ke) {
+            //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
 
-            @Override
-            public void keyPressed(KeyEvent ke) {
-                if ((ke.getKeyCode() == KeyEvent.VK_F) && ((ke.getModifiers() & KeyEvent.CTRL_MASK) != 0)) {
-                    while(true){
-                        String shelf =  JOptionPane.showInputDialog(null,"Enter shelf number");
-                        if(shelf != null && !shelf.equals("") && shelf.matches("[0-9]+")){
-                            searchByShelf(shelf);
-                            break;
-                        }
-                        else if (shelf != null){
-                            JOptionPane.showMessageDialog(null, "You must insert only numbers", "Alert", JOptionPane.ERROR_MESSAGE);
-                        }
-                        else{
-                            break;
-                        }
-                    }                           
-                }            
+        @Override
+        public void keyPressed(KeyEvent ke) {
+            if ((ke.getKeyCode() == KeyEvent.VK_F) && ((ke.getModifiers() & KeyEvent.CTRL_MASK) != 0)) {
+                while (true) {
+                    String shelf = JOptionPane.showInputDialog(null, "Enter shelf number");
+                    if (shelf != null && !shelf.equals("") && shelf.matches("[0-9]+")) {
+                        searchByShelf(shelf);
+                        break;
+                    } else if (shelf != null) {
+                        JOptionPane.showMessageDialog(null, "You must insert only numbers", "Alert", JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        break;
+                    }
+                }
             }
+        }
 
-            @Override
-            public void keyReleased(KeyEvent ke) {
-                //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            }
-        };
+        @Override
+        public void keyReleased(KeyEvent ke) {
+            //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+    };
+
     /**
      * Creates new form storageTabs
      */
-    
+
     public storageTabs() {
         initComponents();
         this.setExtendedState(this.getExtendedState() | JFrame.MAXIMIZED_BOTH);
         this.isAdmin = false;
-        
+
         this.search_textfield.addKeyListener(kl);
         this.jMenuBar1.addKeyListener(kl);
         this.tabbs.addKeyListener(kl);
@@ -78,123 +80,143 @@ public class storageTabs extends javax.swing.JFrame {
         this.sufa_jTable.addKeyListener(kl);
         this.baz_raam_jTable.addKeyListener(kl);
         JPopupMenu menu = new JPopupMenu();
-        
+
         Action cut = new DefaultEditorKit.CutAction();
         cut.putValue(Action.NAME, "Cut");
         cut.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke("control X"));
-        menu.add( cut );
+        menu.add(cut);
 
         Action copy = new DefaultEditorKit.CopyAction();
         copy.putValue(Action.NAME, "Copy");
         copy.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke("control C"));
-        menu.add( copy );
+        menu.add(copy);
 
         Action paste = new DefaultEditorKit.PasteAction();
         paste.putValue(Action.NAME, "Paste");
         paste.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke("control V"));
-        menu.add( paste );
-        
+        menu.add(paste);
+
         this.barak_jTable.addMouseListener(new MouseAdapter() {
-        public void mouseClicked (MouseEvent me) {
-            if (me.getClickCount() == 2) {
-                doubleClickBarak();
+            public void mouseClicked(MouseEvent me) {
+                if (me.getClickCount() == 2) {
+                    doubleClickBarak();
+                }
             }
-        }
         });
         this.sufa_jTable.addMouseListener(new MouseAdapter() {
-        public void mouseClicked (MouseEvent me) {
-            if (me.getClickCount() == 2) {
-                doubleClickSufa();
+            public void mouseClicked(MouseEvent me) {
+                if (me.getClickCount() == 2) {
+                    doubleClickSufa();
+                }
             }
-        }
         });
         this.baz_raam_jTable.addMouseListener(new MouseAdapter() {
-        public void mouseClicked (MouseEvent me) {
-            if (me.getClickCount() == 2) {
-                doubleClickBaz();
+            public void mouseClicked(MouseEvent me) {
+                if (me.getClickCount() == 2) {
+                    doubleClickBaz();
+                }
             }
-        }
         });
-        
-        
+
         this.search_textfield.setComponentPopupMenu(menu);
         this.barak_jTable.setSelectionModel(new ForcedListSelectionModel());
         this.sufa_jTable.setSelectionModel(new ForcedListSelectionModel());
         this.baz_raam_jTable.setSelectionModel(new ForcedListSelectionModel());
         this.startLisner(5);
-        
-        
+
         //////////////////////////
         this.barak_jTable.getColumnModel().getColumn(1).setPreferredWidth(300); // TODO : setpreferredwidth to every column
         //////////////////////////
     }
     
-    public void doubleClickBarak(){
-        JTable table = this.barak_jTable;
-        String[] data = new String[table.getColumnCount()-1];
-        int row = table.getSelectedRow();
-        for (int i = 0; i < data.length; i++) {
-            if(table.getValueAt(table.getSelectedRow(), i+1) != null){
-                data[i] = table.getValueAt(table.getSelectedRow(), i+1).toString();
-            }
-            else{
-                data[i] = "";
-            }
+    public void closeItemDescFrame(String id){
+        if(this.item_desc_map.containsKey(id)){
+            this.item_desc_map.remove(id);
         }
-        ItemDescription id = new ItemDescription();
-        id.setID(table.getValueAt(table.getSelectedRow(), 0).toString());
-        id.setAdmin(this.isAdmin);
-        id.setUserName(this._user);
-        id.setDB(db);
-        id.setTableName(this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase()+"_new");
-        id.inserData(data);
-        id.setVisible(true);
     }
-    
-    public void doubleClickBaz(){
-        JTable table = this.baz_raam_jTable;
-        String[] data = new String[table.getColumnCount()-1];
+
+    public void doubleClickBarak() {
+        JTable table = this.barak_jTable;
+        String[] data = new String[table.getColumnCount() - 1];
         int row = table.getSelectedRow();
         for (int i = 0; i < data.length; i++) {
-            if(table.getValueAt(table.getSelectedRow(), i+1) != null){
-                data[i] = table.getValueAt(table.getSelectedRow(), i+1).toString();
+            if (table.getValueAt(table.getSelectedRow(), i + 1) != null) {
+                data[i] = table.getValueAt(table.getSelectedRow(), i + 1).toString();
+            } else {
+                data[i] = "";
             }
-            else{
+        }
+        if (item_desc_map.containsKey(table.getValueAt(table.getSelectedRow(), 0).toString())) {
+            ItemDescription temp_item_desc = item_desc_map.get(table.getValueAt(table.getSelectedRow(), 0).toString());
+            Dimension prev_dim = temp_item_desc.getSize();
+            temp_item_desc.setExtendedState( JFrame.MAXIMIZED_BOTH );
+            temp_item_desc.setSize(prev_dim);
+            Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+            temp_item_desc.setLocation(dim.width / 2 - temp_item_desc.getSize().width / 2, dim.height / 2 - temp_item_desc.getSize().height / 2);
+        } else {
+            ItemDescription id = new ItemDescription();
+            id.intialMain(this);
+            id.setID(table.getValueAt(table.getSelectedRow(), 0).toString());
+            id.setAdmin(this.isAdmin);
+            id.setUserName(this._user);
+            id.setDB(db);
+            id.setTableName(this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase() + "_new");
+            id.inserData(data);
+            id.setVisible(true);
+            item_desc_map.put(table.getValueAt(table.getSelectedRow(), 0).toString(), id);
+        }
+
+    }
+
+    public void refreshFromOtherFrame() {
+        ActionEvent evt = null;
+        this.search_buttonActionPerformed(evt);
+    }
+
+    public void doubleClickBaz() {
+        JTable table = this.baz_raam_jTable;
+        String[] data = new String[table.getColumnCount() - 1];
+        int row = table.getSelectedRow();
+        for (int i = 0; i < data.length; i++) {
+            if (table.getValueAt(table.getSelectedRow(), i + 1) != null) {
+                data[i] = table.getValueAt(table.getSelectedRow(), i + 1).toString();
+            } else {
                 data[i] = "";
             }
         }
         ItemDescription id = new ItemDescription();
         id.setID(table.getValueAt(table.getSelectedRow(), 0).toString());
+        id.intialMain(this);
         id.setAdmin(this.isAdmin);
         id.setDB(db);
         id.isBaz();
-        id.setTableName(this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase()+"_new");
+        id.setTableName(this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase() + "_new");
         id.inserData(data);
         id.setVisible(true);
     }
-    
-       public void doubleClickSufa(){
+
+    public void doubleClickSufa() {
         JTable table = this.sufa_jTable;
-        String[] data = new String[table.getColumnCount()-1];
+        String[] data = new String[table.getColumnCount() - 1];
         int row = table.getSelectedRow();
         for (int i = 0; i < data.length; i++) {
-            if(table.getValueAt(table.getSelectedRow(), i+1) != null){
-                data[i] = table.getValueAt(table.getSelectedRow(), i+1).toString();
-            }
-            else{
+            if (table.getValueAt(table.getSelectedRow(), i + 1) != null) {
+                data[i] = table.getValueAt(table.getSelectedRow(), i + 1).toString();
+            } else {
                 data[i] = "";
             }
         }
         ItemDescription id = new ItemDescription();
         id.setID(table.getValueAt(table.getSelectedRow(), 0).toString());
+        id.intialMain(this);
         id.setAdmin(this.isAdmin);
         id.setDB(db);
-        id.setTableName(this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase()+"_new");
+        id.setTableName(this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase() + "_new");
         id.inserData(data);
         id.setVisible(true);
     }
-    
-    public void firstLoad(){
+
+    public void firstLoad() {
         loadDBtoJTable("barak_new", this.barak_jTable);
         loadDBtoJTable("sufa_new", this.sufa_jTable);
         loadDBtoJTable("baz_new", this.baz_raam_jTable);
@@ -210,21 +232,21 @@ public class storageTabs extends javax.swing.JFrame {
         this.sufa_jTable.setAutoCreateRowSorter(true);
         this.baz_raam_jTable.setAutoCreateRowSorter(true);
     }
-    
-    public void setDB(DataBase d){
+
+    public void setDB(DataBase d) {
         this.db = d;
     }
 
-    public void setUser(String user){
+    public void setUser(String user) {
         this._user = user;
     }
-    
-    public void startLisner(int minutes){
+
+    public void startLisner(int minutes) {
         InactivityListener lisner;
         lisner = new InactivityListener(this, this.logout(this), minutes);
         lisner.start();
     }
-    
+
     public void loadDBtoJTable(String table_name, JTable gui_table) {
         ArrayList<String[]> table = db.getTable(table_name);
         String[] row = new String[10];
@@ -237,7 +259,7 @@ public class storageTabs extends javax.swing.JFrame {
         }
         //this.paintZeroToRed(gui_table);
     }
-    
+
     /*public void paintZeroToRed(JTable gui_table){
         for (int i = 0; i < gui_table.getRowCount(); i++) {
             System.out.println("gui_table.getModel().getValueAt(i = "+i+", 5) = "+gui_table.getModel().getValueAt(i, 5));
@@ -246,16 +268,15 @@ public class storageTabs extends javax.swing.JFrame {
             }
         }
     }*/
-    
-    public void searchByShelf(String shelf){
+    public void searchByShelf(String shelf) {
         JTable[] my_tables = {this.barak_jTable, this.sufa_jTable, this.baz_raam_jTable};
         JTable table = my_tables[this.tabbs.getSelectedIndex()];
-        String table_name = this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase()+"_new";
-        this.loadSearchResultToJTable(this.db.searchByShelf(table_name, shelf) , table);
+        String table_name = this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase() + "_new";
+        this.loadSearchResultToJTable(this.db.searchByShelf(table_name, shelf), table);
     }
-    
+
     public void loadSearchResultToJTable(ArrayList<String[]> table, JTable gui_table) {
-        if(table == null || table.size() == 0){
+        if (table == null || table.size() == 0) {
             JOptionPane.showMessageDialog(null, "Not found", "Alert", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -284,8 +305,8 @@ public class storageTabs extends javax.swing.JFrame {
     public void setAdmin(boolean state) {
         this.isAdmin = state;
     }
-    
-    public Action logout(JFrame window){
+
+    public Action logout(JFrame window) {
         return new Action() {
             @Override
             public Object getValue(String string) {
@@ -336,20 +357,20 @@ public class storageTabs extends javax.swing.JFrame {
     public boolean getIsAdmin() {
         return this.isAdmin;
     }
-    
-    public void refresh(){
+
+    public void refresh() {
         JTable[] my_tables = {this.barak_jTable, this.sufa_jTable, this.baz_raam_jTable};
         //searchTable(my_tables[this.tabbs.getSelectedIndex()] , "");
         JTable gui_table = my_tables[this.tabbs.getSelectedIndex()];
         DefaultTableModel model = (DefaultTableModel) gui_table.getModel();
         model.setRowCount(0);
-        loadDBtoJTable(this.tabbs.getTitleAt(this.tabbs.getSelectedIndex())+"_new", my_tables[this.tabbs.getSelectedIndex()]);
+        loadDBtoJTable(this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()) + "_new", my_tables[this.tabbs.getSelectedIndex()]);
     }
 
-    private void searchTable(JTable table , String id) {
-        this.loadSearchResultToJTable(db.search(this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase()+"_new", id) , table);
+    private void searchTable(JTable table, String id) {
+        this.loadSearchResultToJTable(db.search(this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase() + "_new", id), table);
     }
-    
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -701,40 +722,38 @@ public class storageTabs extends javax.swing.JFrame {
     private void search_buttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_search_buttonActionPerformed
         // search button
         JTable[] my_tables = {this.barak_jTable, this.sufa_jTable, this.baz_raam_jTable};
-        searchTable(my_tables[this.tabbs.getSelectedIndex()] , search_textfield.getText());
+        searchTable(my_tables[this.tabbs.getSelectedIndex()], search_textfield.getText());
     }//GEN-LAST:event_search_buttonActionPerformed
 
     private void get_item_buttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_get_item_buttonActionPerformed
         // TODO add your handling code here:
         JTable[] my_tables = {this.barak_jTable, this.sufa_jTable, this.baz_raam_jTable};
         JTable table = my_tables[this.tabbs.getSelectedIndex()];
-        String table_name = this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase()+"_new";
-        if(!table.getSelectionModel().isSelectionEmpty()){
+        String table_name = this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase() + "_new";
+        if (!table.getSelectionModel().isSelectionEmpty()) {
             String id = table.getValueAt(table.getSelectedRow(), 0).toString();
             int one = -1;
-            String user_name = this._user ; 
-            Object temp = this.db.updateItemQuntity(table_name, id , one, user_name);
-            if(temp instanceof Exception){
-                System.out.println("quntity at storage for item '"+table.getValueAt(table.getSelectedRow(), 1).toString()+"' is 0");
-                JOptionPane.showMessageDialog(null, "quntity at storage for item '"+table.getValueAt(table.getSelectedRow(), 1).toString()+"' is 0 \n "+((Exception) temp).getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);
+            String user_name = this._user;
+            Object temp = this.db.updateItemQuntity(table_name, id, one, user_name);
+            if (temp instanceof Exception) {
+                System.out.println("quntity at storage for item '" + table.getValueAt(table.getSelectedRow(), 1).toString() + "' is 0");
+                JOptionPane.showMessageDialog(null, "quntity at storage for item '" + table.getValueAt(table.getSelectedRow(), 1).toString() + "' is 0 \n " + ((Exception) temp).getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);
             };
             int index = 5; // 5 is default for my implement;
             for (int i = 0; i < table.getColumnCount(); i++) {
-                if(table.getColumnName(i).equals("quntity at storage")){
-                    index = i ;
+                if (table.getColumnName(i).equals("quntity at storage")) {
+                    index = i;
                     break;
                 }
             }
             String qunt = table.getModel().getValueAt(table.getSelectedRow(), index).toString();
-            if(Integer.parseInt(qunt) == 0){  
-                JOptionPane.showMessageDialog(null, "quntity at storage for item '"+table.getValueAt(table.getSelectedRow(), 1).toString()+"' is 0" , "Alert", JOptionPane.ERROR_MESSAGE);
-            }
-            else{
-                table.getModel().setValueAt(Integer.parseInt(qunt)+one, table.getSelectedRow(), index);
+            if (Integer.parseInt(qunt) == 0) {
+                JOptionPane.showMessageDialog(null, "quntity at storage for item '" + table.getValueAt(table.getSelectedRow(), 1).toString() + "' is 0", "Alert", JOptionPane.ERROR_MESSAGE);
+            } else {
+                table.getModel().setValueAt(Integer.parseInt(qunt) + one, table.getSelectedRow(), index);
             }
             //this.refresh_jButton1ActionPerformed(evt);
-        }
-        else{
+        } else {
             JOptionPane.showMessageDialog(null, "Row is not selected", "Alert", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_get_item_buttonActionPerformed
@@ -743,28 +762,27 @@ public class storageTabs extends javax.swing.JFrame {
         // TODO add your handling code here:
         JTable[] my_tables = {this.barak_jTable, this.sufa_jTable, this.baz_raam_jTable};
         JTable table = my_tables[this.tabbs.getSelectedIndex()];
-        String table_name = this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase()+"_new";
-        if(!table.getSelectionModel().isSelectionEmpty()){
+        String table_name = this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase() + "_new";
+        if (!table.getSelectionModel().isSelectionEmpty()) {
             String id = table.getValueAt(table.getSelectedRow(), 0).toString();
             int one = 1;
-            String user_name = this._user ; 
-            Object temp = this.db.updateItemQuntity(table_name, id , one, user_name);
-            if(temp instanceof Exception){
+            String user_name = this._user;
+            Object temp = this.db.updateItemQuntity(table_name, id, one, user_name);
+            if (temp instanceof Exception) {
                 //System.out.println("quntity at storage for item '"+table.getValueAt(table.getSelectedRow(), 1).toString()+"' is 0");
-                JOptionPane.showMessageDialog(null, "Error! \n "+((Exception) temp).getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Error! \n " + ((Exception) temp).getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);
             };
             int index = 5; // 5 is default for my implement;
             for (int i = 0; i < table.getColumnCount(); i++) {
-                if(table.getColumnName(i).equals("quntity at storage")){
-                    index = i ;
+                if (table.getColumnName(i).equals("quntity at storage")) {
+                    index = i;
                     break;
                 }
             }
             String qunt = table.getModel().getValueAt(table.getSelectedRow(), index).toString();
-            table.getModel().setValueAt(Integer.parseInt(qunt)+one, table.getSelectedRow(), index);
+            table.getModel().setValueAt(Integer.parseInt(qunt) + one, table.getSelectedRow(), index);
             //this.refresh_jButton1ActionPerformed(evt);
-        }
-        else{
+        } else {
             JOptionPane.showMessageDialog(null, "Row is not selected", "Alert", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_add_item_buttonActionPerformed
@@ -773,16 +791,15 @@ public class storageTabs extends javax.swing.JFrame {
         // TODO add your handling code here:
         JTable[] my_tables = {this.barak_jTable, this.sufa_jTable, this.baz_raam_jTable};
         JTable table = my_tables[this.tabbs.getSelectedIndex()];
-        String table_name = this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase()+"_new";
+        String table_name = this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase() + "_new";
         String id = table.getValueAt(table.getSelectedRow(), 0).toString();
         String item = table.getValueAt(table.getSelectedRow(), 1).toString();
-        String user_name = this._user ; 
+        String user_name = this._user;
         Object temp = this.db.deleteRow(table_name, id, item, user_name);
-        if(temp instanceof Exception){
-            JOptionPane.showMessageDialog(null, "ERROR! \n "+((Exception) temp).getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);
-        }
-        else{
-               this.refresh_jButton1ActionPerformed(evt);
+        if (temp instanceof Exception) {
+            JOptionPane.showMessageDialog(null, "ERROR! \n " + ((Exception) temp).getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);
+        } else {
+            this.refresh_jButton1ActionPerformed(evt);
         }
     }//GEN-LAST:event_delete_row_jButtonActionPerformed
 
@@ -794,17 +811,20 @@ public class storageTabs extends javax.swing.JFrame {
         inw.setST(this);
         inw.setDB(this.db);
         inw.setUserName(this._user);
-        if((this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase()+"_new").equals("baz_new")){
+        if ((this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase() + "_new").equals("baz_new")) {
             inw.isBaz();
         }
-        inw.setTableName(this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase()+"_new");
+        inw.setTableName(this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase() + "_new");
         inw.setVisible(true);
     }//GEN-LAST:event_insert_item_buttonActionPerformed
 
     private void refresh_jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refresh_jButton1ActionPerformed
         // TODO add your handling code here:
-        this.search_textfield.setText("");
-        this.refresh();
+        if (search_textfield.getText().equals("")) {
+            this.refresh();
+        } else {
+            search_buttonActionPerformed(evt);
+        }
     }//GEN-LAST:event_refresh_jButton1ActionPerformed
 
     private void create_new_user_jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_create_new_user_jMenuItem1ActionPerformed
@@ -870,9 +890,9 @@ public class storageTabs extends javax.swing.JFrame {
 
     private void search_textfieldKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_search_textfieldKeyPressed
         // TODO add your handling code here:
-        if(evt.getKeyCode() == KeyEvent.VK_ENTER) {
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
             JTable[] my_tables = {this.barak_jTable, this.sufa_jTable, this.baz_raam_jTable};
-            searchTable(my_tables[this.tabbs.getSelectedIndex()] , search_textfield.getText());
+            searchTable(my_tables[this.tabbs.getSelectedIndex()], search_textfield.getText());
         }
     }//GEN-LAST:event_search_textfieldKeyPressed
 
