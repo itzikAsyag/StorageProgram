@@ -39,7 +39,7 @@ public class insertNewItemWindow extends javax.swing.JFrame {
      */
     public insertNewItemWindow() {
         this.exitListener = new WindowAdapter() {
-            
+
             @Override
             public void windowClosing(WindowEvent e) {
                 int confirm = JOptionPane.showOptionDialog(
@@ -99,8 +99,8 @@ public class insertNewItemWindow extends javax.swing.JFrame {
 
         return resizedImage;
     }
-    
-    private void cancelOperation(){
+
+    private void cancelOperation() {
         if (!this.path.equals("")) {
             File file = new File(this.path);
             if (file.delete()) {
@@ -476,27 +476,27 @@ public class insertNewItemWindow extends javax.swing.JFrame {
 
     private void insert_jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_insert_jButton2ActionPerformed
         // TODO add your handling code here:
-        if (this.name_jTextField.getText().equals("")
-                || this.pn_jTextField1.getText().equals("") || this.sn_jTextField2.getText().equals("")
-                || this.las_jTextField7.getText().equals("")) {
-            JOptionPane.showMessageDialog(null, "You must to insert : name ,part number , serial number , location at storage.", "Alert", JOptionPane.ERROR_MESSAGE);
+        if (this.name_jTextField.getText().equals("") || this.pn_jTextField1
+                .getText().equals("") || this.sn_jTextField2.getText().equals("") || this.las_jTextField7
+                .getText().equals("")) {
+            JOptionPane.showMessageDialog(null, "You must to insert : name ,part number , serial number , location at storage.", "Alert", 0);
         } else {
-            Object temp = db.insertItem(this.table_name, this.name_jTextField.getText(),
-                    this.pn_jTextField1.getText(),
-                    this.sn_jTextField2.getText(), this.prn_jTextField3.getText(),
-                    this.qas_jTextField4.getText(), this.sb_jTextField5.getText(),
-                    this.qasys_jTextField6.getText(), this.las_jTextField7.getText(),
-                    this.comments_jTextField8.getText(), this.user_name);
+            Object temp = this.db.insertItem(this.table_name, this.name_jTextField.getText(), this.pn_jTextField1
+                    .getText(), this.sn_jTextField2
+                            .getText(), this.prn_jTextField3.getText(), this.qas_jTextField4
+                    .getText(), this.sb_jTextField5.getText(), this.qasys_jTextField6
+                    .getText(), this.las_jTextField7.getText(), this.comments_jTextField8
+                    .getText(), this.user_name);
             if (temp instanceof Boolean) {
-                JOptionPane.showMessageDialog(null, "Success!", "information", JOptionPane.INFORMATION_MESSAGE);
-                st.refresh();
-                this.setVisible(false);
+                JOptionPane.showMessageDialog(null, "Success!", "information", 1);
+                this.st.refresh();
+                setVisible(false);
             } else if (temp instanceof Exception) {
-                JOptionPane.showMessageDialog(null, "ERROR! \n " + ((Exception) temp).getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "ERROR! \n " + ((Exception) temp).getMessage(), "Alert", 0);
             }
-            //image save
+
             boolean is_update = false;
-            String db_path = db.getImagePath(this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name);
+            String db_path = this.db.getImagePath(this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name);
             if (db_path != null && !db_path.equals(this.path)) {
                 is_update = true;
                 File file = new File(db_path);
@@ -506,11 +506,11 @@ public class insertNewItemWindow extends javax.swing.JFrame {
                     System.out.println("Failed to delete the file");
                 }
             }
-            temp = db.setImage(is_update, this.user_name, this.name_jTextField.getText() , this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name, this.path.replace("\\", "\\\\"));
+            temp = this.db.setImage(is_update, this.user_name, this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name, this.path.replace("\\", "\\\\"));
             if (temp instanceof Exception) {
-                JOptionPane.showMessageDialog(null, "Failed to save image \n " + ((Exception) temp).getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Failed to save image \n " + ((Exception) temp).getMessage(), "Alert", 0);
             } else {
-                JOptionPane.showMessageDialog(null, "Image upload successful!", "information", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Image upload successful!", "information", 1);
             }
         }
     }//GEN-LAST:event_insert_jButton2ActionPerformed
@@ -565,9 +565,8 @@ public class insertNewItemWindow extends javax.swing.JFrame {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        while (process.isAlive()) { // TODO: wait until the user close the program
+        while (process.isAlive());
 
-        }
         if (!this.path.equals("")) {
             File file = new File(this.path);
             if (file.delete()) {
@@ -577,27 +576,26 @@ public class insertNewItemWindow extends javax.swing.JFrame {
             }
             this.image_jLabel2.setIcon(null);
         }
-        File last_modified_file = this.lastFileModified("C:\\Users\\Elbit Storage\\Pictures\\LifeCam Files");
+        File last_modified_file = lastFileModified("C:\\Users\\Elbit Storage\\Pictures\\LifeCam Files");
         if (last_modified_file != null) {
             if (!isImage(last_modified_file)) {
-                JOptionPane.showMessageDialog(null, "File must to be Image", "Alert", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "File must to be Image", "Alert", 0);
                 return;
             }
             try {
-                BufferedImage originalImage = ImageIO.read(last_modified_file);//change path to where file is located
-                int type = originalImage.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : originalImage.getType();
+                BufferedImage originalImage = ImageIO.read(last_modified_file);
+                int type = (originalImage.getType() == 0) ? 2 : originalImage.getType();
 
                 BufferedImage resizeImageJpg = resizeImage(originalImage, type, this.image_jLabel2.getWidth(), this.image_jLabel2.getHeight());
                 File jarDir = new File(System.getProperty("user.dir"));
                 File directory = new File(jarDir.getAbsolutePath() + "\\images");
                 if (!directory.exists()) {
                     directory.mkdir();
-                    // If you require it to make the entire directory path including parents,
-                    // use directory.mkdirs(); here instead.
                 }
-                this.path = jarDir.getAbsolutePath() + "\\images\\" + this.pn_jTextField1.getText() + "_resized" + String.valueOf((Math.random() * (1000000 - 0)) + 0) + ".jpg";
-                ImageIO.write(resizeImageJpg, "jpg", new File(path));
-                this.image_jLabel2.setIcon(new ImageIcon(path));
+
+                this.path = jarDir.getAbsolutePath() + "\\images\\" + this.pn_jTextField1.getText() + "_resized" + String.valueOf(Math.random() * 1000000.0D + 0.0D) + ".jpg";
+                ImageIO.write(resizeImageJpg, "jpg", new File(this.path));
+                this.image_jLabel2.setIcon(new ImageIcon(this.path));
                 if (last_modified_file.delete()) {
                     System.out.println("File deleted successfully");
                 } else {

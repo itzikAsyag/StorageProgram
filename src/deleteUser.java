@@ -221,13 +221,16 @@ public class deleteUser extends javax.swing.JFrame {
     private void delete_jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_delete_jButton1ActionPerformed
         // TODO add your handling code here:
         Object temp = this.db.deleteUser(this.creator, this.username_jTextField1.getText());
-        if(temp instanceof Exception){
-            JOptionPane.showMessageDialog(null, "Delete failed \n "+((Exception) temp).getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);
-        }
-        else{
-            JOptionPane.showMessageDialog(null, "Delete Successful!", "information", JOptionPane.INFORMATION_MESSAGE);
-            this.setVisible(false);
-        }
+    if (temp instanceof Exception) {
+      JOptionPane.showMessageDialog(null, "Delete failed \n " + ((Exception)temp).getMessage(), "Alert", 0);
+    } else {
+      
+      JOptionPane.showMessageDialog(null, "Delete Successful!", "information", 1);
+      setVisible(false);
+      if (this.creator.equals(this.username_jTextField1.getText())) {
+        System.exit(0);
+      }
+    } 
     }//GEN-LAST:event_delete_jButton1ActionPerformed
 
     private void cancel_jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancel_jButton2ActionPerformed

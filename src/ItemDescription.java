@@ -599,25 +599,25 @@ public class ItemDescription extends javax.swing.JFrame {
 
     private void update_jButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_update_jButtonActionPerformed
         // TODO add your handling code here:
-        Object temp = this.db.updateItem(this.id, this.table_name, this.name_jTextField.getText(),
-                this.pn_jTextField1.getText(), this.sn_jTextField2.getText(),
-                this.prn_jTextField3.getText(), this.qas_jTextField4.getText(),
-                this.sb_jTextField5.getText(), this.qasys_jTextField6.getText(),
-                this.las_jTextField7.getText(), this.comments_jTextField8.getText(),
-                this.user_name);
-        for (int i = 0; i < item_data.length; i++) {
-            if (!somthing_changed && !item_data[i].equals(item_parms[i].getText())) {
-                somthing_changed = true;
+        Object temp = this.db.updateItem(this.id, this.table_name, this.name_jTextField.getText(), this.pn_jTextField1
+                .getText(), this.sn_jTextField2.getText(), this.prn_jTextField3
+                .getText(), this.qas_jTextField4.getText(), this.sb_jTextField5
+                .getText(), this.qasys_jTextField6.getText(), this.las_jTextField7
+                .getText(), this.comments_jTextField8.getText(), this.user_name);
+
+        for (int i = 0; i < this.item_data.length; i++) {
+            if (!this.somthing_changed && !this.item_data[i].equals(this.item_parms[i].getText())) {
+                this.somthing_changed = true;
             }
         }
-        if (somthing_changed) {
-            this.image_id = db.getImageID(this.item_data[0], this.item_data[1], this.item_data[2], this.table_name);
-            if (image_id != null) {
+        if (this.somthing_changed) {
+            this.image_id = this.db.getImageID(this.item_data[0], this.item_data[1], this.item_data[2], this.table_name);
+            if (this.image_id != null) {
                 this.db.updateChangesForImageDB(this.image_id, this.user_name, this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name, this.path.replace("\\", "\\\\"));
             }
         }
         boolean is_update = false;
-        String db_path = db.getImagePath(this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name);
+        String db_path = this.db.getImagePath(this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name);
         if (db_path != null && !db_path.equals(this.path)) {
             is_update = true;
             File file = new File(db_path);
@@ -628,21 +628,21 @@ public class ItemDescription extends javax.swing.JFrame {
             }
         }
         if (!this.path.equals("")) {
-            Object temp2 = db.setImage(is_update, this.user_name, this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name, this.path.replace("\\", "\\\\"));
+            Object temp2 = this.db.setImage(is_update, this.user_name, this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name, this.path.replace("\\", "\\\\"));
             if (temp2 instanceof Exception) {
-                JOptionPane.showMessageDialog(null, "Failed to save image \n " + ((Exception) temp2).getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Failed to save image \n " + ((Exception) temp2).getMessage(), "Alert", 0);
             } else {
-                JOptionPane.showMessageDialog(null, "Image upload successful!", "information", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Image upload successful!", "information", 1);
             }
         }
         if (temp instanceof Exception) {
-            JOptionPane.showMessageDialog(null, "Update item: '" + this.name_jTextField.getText() + "' failed \n " + ((Exception) temp).getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Update item: '" + this.name_jTextField.getText() + "' failed \n " + ((Exception) temp).getMessage(), "Alert", 0);
         } else {
-            JOptionPane.showMessageDialog(null, "Update item: '" + this.name_jTextField.getText() + "' successful", "information", JOptionPane.INFORMATION_MESSAGE);
-            this.setVisible(false);
+            JOptionPane.showMessageDialog(null, "Update item: '" + this.name_jTextField.getText() + "' successful", "information", 1);
+            setVisible(false);
         }
-        main.closeItemDescFrame(id);
-        main.refreshFromOtherFrame();
+        this.main.closeItemDescFrame(this.id);
+        this.main.refreshFromOtherFrame();
     }//GEN-LAST:event_update_jButtonActionPerformed
 
     private void cancel_operation_jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancel_operation_jButton1ActionPerformed
