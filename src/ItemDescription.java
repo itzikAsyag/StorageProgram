@@ -1,8 +1,10 @@
 
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Toolkit;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -10,18 +12,15 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.activation.MimetypesFileTypeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 /*
@@ -39,6 +38,7 @@ public class ItemDescription extends javax.swing.JFrame {
     private String table_name = "";
     private String user_name = "";
     private String path = "";
+    private String image_load = "";
     private String id = "";
     private boolean isAdmin = false;
     private boolean somthing_changed = false;
@@ -88,6 +88,41 @@ public class ItemDescription extends javax.swing.JFrame {
             }
         };
 
+        ////////////// double click on image icon open image file 
+        /////////////  but the image was resized so better solution is to split
+        ////////////   to different dirctories "resized images" and "images".
+        ///////////    need to take photo again for every item.
+        this.image_jLabel1.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent me) {
+            }
+
+            @Override
+            public void mousePressed(MouseEvent me) {
+                if (me.getClickCount() >= 2) {
+                    try {
+                        File f = new File(image_load);
+                        Desktop dt = Desktop.getDesktop();
+                        dt.open(f);
+                    } catch (IOException ex) {
+                        Logger.getLogger(ItemDescription.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent me) {
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent me) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent me) {
+            }
+        });
+
         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
         this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
         this.addWindowListener(exitListener);
@@ -126,6 +161,7 @@ public class ItemDescription extends javax.swing.JFrame {
         if (path != null) {
             this.image_jLabel1.setIcon(new ImageIcon(path));
         }
+        this.image_load = path;
     }
 
     public void setAdmin(boolean state) {
@@ -187,13 +223,36 @@ public class ItemDescription extends javax.swing.JFrame {
             File file = new File(this.path);
             if (file.delete()) {
                 System.out.println("File deleted successfully");
+                System.out.println("here 3 ");
             } else {
                 System.out.println("Failed to delete the file");
             }
         }
+        this.path = "";
         this.image_jLabel1.setIcon(null);
         this.setVisible(false);
         main.closeItemDescFrame(this.id);
+    }
+
+    public static boolean isValidName(String text) {
+        Pattern pattern = Pattern.compile(
+                "# Match a valid Windows filename (unspecified file system).          \n"
+                + "^                                # Anchor to start of string.        \n"
+                + "(?!                              # Assert filename is not: CON, PRN, \n"
+                + "  (?:                            # AUX, NUL, COM1, COM2, COM3, COM4, \n"
+                + "    CON|PRN|AUX|NUL|             # COM5, COM6, COM7, COM8, COM9,     \n"
+                + "    COM[1-9]|LPT[1-9]            # LPT1, LPT2, LPT3, LPT4, LPT5,     \n"
+                + "  )                              # LPT6, LPT7, LPT8, and LPT9...     \n"
+                + "  (?:\\.[^.]*)?                  # followed by optional extension    \n"
+                + "  $                              # and end of string                 \n"
+                + ")                                # End negative lookahead assertion. \n"
+                + "[^<>:\"/\\\\|?*\\x00-\\x1F]*     # Zero or more valid filename chars.\n"
+                + "[^<>:\"/\\\\|?*\\x00-\\x1F\\ .]  # Last char is not a space or dot.  \n"
+                + "$                                # Anchor to end of string.            ",
+                Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE | Pattern.COMMENTS);
+        Matcher matcher = pattern.matcher(text);
+        boolean isMatch = matcher.matches();
+        return isMatch;
     }
 
     private static BufferedImage resizeImage(BufferedImage originalImage, int type, int IMG_WIDTH, int IMG_HEIGHT) {
@@ -575,14 +634,20 @@ public class ItemDescription extends javax.swing.JFrame {
 
                 BufferedImage resizeImageJpg = resizeImage(originalImage, type, this.image_jLabel1.getWidth(), this.image_jLabel1.getHeight());
                 File jarDir = new File(System.getProperty("user.dir"));
-                System.out.println(jarDir.getAbsolutePath());
                 File directory = new File(jarDir.getAbsolutePath() + "\\images");
                 if (!directory.exists()) {
                     directory.mkdir();
                     // If you require it to make the entire directory path including parents,
                     // use directory.mkdirs(); here instead.
                 }
-                this.path = jarDir.getAbsolutePath() + "\\images\\" + this.pn_jTextField1.getText() + "_resized" + String.valueOf((Math.random() * (1000000 - 0)) + 0) + ".jpg";
+                String file_name = this.pn_jTextField1.getText() + "_resized" + String.valueOf((Math.random() * (1000000 - 0)) + 0);
+                if (!isValidName(file_name)) {
+                    /// change chars to create valid file name
+                    file_name = file_name.replaceAll("[\\\\/:*?\"<>|]", "_");
+                }
+                this.path = jarDir.getAbsolutePath() + "\\images\\" + file_name + ".jpg";
+                this.image_load = this.path;
+                //this.path = jarDir.getAbsolutePath() + "\\images\\" + this.pn_jTextField1.getText() + "_resized" + String.valueOf((Math.random() * (1000000 - 0)) + 0) + ".jpg";
                 ImageIO.write(resizeImageJpg, "jpg", new File(path));
                 this.image_jLabel1.setIcon(new ImageIcon(path));
             } catch (IOException ex) {
@@ -605,42 +670,45 @@ public class ItemDescription extends javax.swing.JFrame {
                 .getText(), this.qasys_jTextField6.getText(), this.las_jTextField7
                 .getText(), this.comments_jTextField8.getText(), this.user_name);
 
-        for (int i = 0; i < this.item_data.length; i++) {
-            if (!this.somthing_changed && !this.item_data[i].equals(this.item_parms[i].getText())) {
-                this.somthing_changed = true;
-            }
-        }
-        if (this.somthing_changed) {
-            this.image_id = this.db.getImageID(this.item_data[0], this.item_data[1], this.item_data[2], this.table_name);
-            if (this.image_id != null) {
-                this.db.updateChangesForImageDB(this.image_id, this.user_name, this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name, this.path.replace("\\", "\\\\"));
-            }
-        }
-        boolean is_update = false;
-        String db_path = this.db.getImagePath(this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name);
-        if (db_path != null && !db_path.equals(this.path)) {
-            is_update = true;
-            File file = new File(db_path);
-            if (file.delete()) {
-                System.out.println("File deleted successfully");
-            } else {
-                System.out.println("Failed to delete the file");
-            }
-        }
-        if (!this.path.equals("")) {
-            Object temp2 = this.db.setImage(is_update, this.user_name, this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name, this.path.replace("\\", "\\\\"));
-            if (temp2 instanceof Exception) {
-                JOptionPane.showMessageDialog(null, "Failed to save image \n " + ((Exception) temp2).getMessage(), "Alert", 0);
-            } else {
-                JOptionPane.showMessageDialog(null, "Image upload successful!", "information", 1);
-            }
-        }
         if (temp instanceof Exception) {
             JOptionPane.showMessageDialog(null, "Update item: '" + this.name_jTextField.getText() + "' failed \n " + ((Exception) temp).getMessage(), "Alert", 0);
         } else {
+            for (int i = 0; i < this.item_data.length; i++) {
+                if (!this.somthing_changed && !this.item_data[i].equals(this.item_parms[i].getText())) {
+                    this.somthing_changed = true;
+                }
+            }
+
+            if (this.somthing_changed) {
+                this.image_id = this.db.getImageID(this.item_data[0], this.item_data[1], this.item_data[2], this.table_name);
+                if (this.image_id != null) {
+                    this.db.updateChangesForImageDB(this.image_id, this.user_name, this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name, this.path.replace("\\", "\\\\"));
+                }
+            }
+            boolean is_update = false;
+            String db_path = this.db.getImagePath(this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name);
+            if (!this.path.equals("") && db_path != null && !db_path.equals(this.path)) {
+                is_update = true;
+                File file = new File(db_path);
+                if (file.delete()) {
+                    System.out.println("File deleted successfully");
+                    System.out.println("here 4 ");
+                } else {
+                    System.out.println("Failed to delete the file");
+                }
+            }
+            if (!this.path.equals("")) {
+                Object temp2 = this.db.setImage(is_update, this.user_name, this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name, this.path.replace("\\", "\\\\"));
+                if (temp2 instanceof Exception) {
+                    JOptionPane.showMessageDialog(null, "Failed to save image \n " + ((Exception) temp2).getMessage(), "Alert", 0);
+                } else {
+                    JOptionPane.showMessageDialog(null, "Image upload successful!", "information", 1);
+                }
+            }
             JOptionPane.showMessageDialog(null, "Update item: '" + this.name_jTextField.getText() + "' successful", "information", 1);
             setVisible(false);
         }
+        this.path = "";
         this.main.closeItemDescFrame(this.id);
         this.main.refreshFromOtherFrame();
     }//GEN-LAST:event_update_jButtonActionPerformed
@@ -662,6 +730,7 @@ public class ItemDescription extends javax.swing.JFrame {
         while (process.isAlive()) { // TODO: wait until the user close the program
 
         }
+        /*//////  WTF
         if (!this.path.equals("")) {
             File file = new File(this.path);
             if (file.delete()) {
@@ -671,13 +740,22 @@ public class ItemDescription extends javax.swing.JFrame {
             }
             this.image_jLabel1.setIcon(null);
         }
+        ////////*/
         File last_modified_file = this.lastFileModified("C:\\Users\\Elbit Storage\\Pictures\\LifeCam Files");
         if (last_modified_file != null) {
             if (!isImage(last_modified_file)) {
                 JOptionPane.showMessageDialog(null, "File must to be Image", "Alert", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+            File file = new File(this.path);
+            if (file.delete()) {
+                System.out.println("File deleted successfully");
+                System.out.println("here 1 ");
+            } else {
+                System.out.println("Failed to delete the file");
+            }
             try {
+                this.image_jLabel1.setIcon(null);
                 BufferedImage originalImage = ImageIO.read(last_modified_file);//change path to where file is located
                 int type = originalImage.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : originalImage.getType();
 
@@ -689,13 +767,21 @@ public class ItemDescription extends javax.swing.JFrame {
                     // If you require it to make the entire directory path including parents,
                     // use directory.mkdirs(); here instead.
                 }
-                this.path = jarDir.getAbsolutePath() + "\\images\\" + this.pn_jTextField1.getText() + "_resized" + String.valueOf((Math.random() * (1000000 - 0)) + 0) + ".jpg";
+                String file_name = this.pn_jTextField1.getText() + "_resized" + String.valueOf((Math.random() * (1000000 - 0)) + 0);
+                if (!isValidName(file_name)) {
+                    /// change chars to create valid file name
+                    file_name = file_name.replaceAll("[\\\\/:*?\"<>|]", "_");
+                }
+                this.path = jarDir.getAbsolutePath() + "\\images\\" + file_name + ".jpg";
+                this.image_load = this.path;
                 ImageIO.write(resizeImageJpg, "jpg", new File(path));
                 this.image_jLabel1.setIcon(new ImageIcon(path));
                 if (last_modified_file.delete()) {
                     System.out.println("File deleted successfully");
+                    System.out.println("here 2 ");
                 } else {
                     System.out.println("Failed to delete the file");
+
                 }
             } catch (IOException ex) {
                 Logger.getLogger(insertNewItemWindow.class.getName()).log(Level.SEVERE, null, ex);

@@ -15,14 +15,16 @@ import javax.swing.JOptionPane;
  */
 public class main extends javax.swing.JFrame {
 
-    private DataBase db = new DataBase();
-    private storageTabs st = new storageTabs();
+    private DataBase db;
+    private storageTabs st;
 
     /**
      * Creates new form NewJFrame
      */
     public main() {
         initComponents();
+        this.db = new DataBase();
+        this.st = new storageTabs();
         this.database_jLabel5.setText("DB: " + this.db.getDbName());
         this.database_jLabel5.setBackground(Color.white);
         if (this.db.getDbName().contains("testing")) {

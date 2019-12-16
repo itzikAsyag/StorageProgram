@@ -31,16 +31,13 @@ public class DataBase {
     String pass = "root";
 
     private Connection conn;
-
     private Statement stmt;
-
     private DataBase db;
 
     DataBase() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             String url = "jdbc:mysql://" + this.host + ":3306/" + this.dbName + "?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
-
             this.conn = DriverManager.getConnection(url, this.username, this.pass);
             this.stmt = this.conn.createStatement();
         } catch (ClassNotFoundException e) {
@@ -346,7 +343,7 @@ public class DataBase {
             }
 
             String update_quntity = "UPDATE " + table_name + "  SET quntity_at_storage = '" + (Integer.parseInt(quntity) + one) + "'  , serial_number = '" + update_serials + "' WHERE " + table_name + "_id = '" + id + "';";
-
+            
             this.stmt.executeUpdate(update_quntity);
             String action = "Reduce quntity";
             if (one == 1) {
