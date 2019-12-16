@@ -7,14 +7,23 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -67,7 +76,6 @@ public class storageTabs extends javax.swing.JFrame {
     /**
      * Creates new form storageTabs
      */
-
     public storageTabs() {
         initComponents();
         this.setExtendedState(this.getExtendedState() | JFrame.MAXIMIZED_BOTH);
@@ -125,35 +133,30 @@ public class storageTabs extends javax.swing.JFrame {
         this.startLisner(5);
 
         //////////////////////////
-        this.barak_jTable.getColumnModel().getColumn(1).setPreferredWidth(300); // TODO : setpreferredwidth to every column
+        this.barak_jTable.getColumnModel().getColumn(1).setPreferredWidth(300);
+        this.sufa_jTable.getColumnModel().getColumn(1).setPreferredWidth(300);
+        this.baz_raam_jTable.getColumnModel().getColumn(1).setPreferredWidth(300);
         //////////////////////////
     }
-    
-    public void closeItemDescFrame(String id){
-        if(this.item_desc_map.containsKey(id)){
+
+    public void closeItemDescFrame(String id) {
+        if (this.item_desc_map.containsKey(id)) {
             this.item_desc_map.remove(id);
         }
     }
 
     public void doubleClickBarak() {
         JTable table = this.barak_jTable;
-        String[] data = new String[table.getColumnCount() - 1];
-        int row = table.getSelectedRow();
-        for (int i = 0; i < data.length; i++) {
-            if (table.getValueAt(table.getSelectedRow(), i + 1) != null) {
-                data[i] = table.getValueAt(table.getSelectedRow(), i + 1).toString();
-            } else {
-                data[i] = "";
+        if (!item_desc_map.containsKey(table.getValueAt(table.getSelectedRow(), 0).toString())) {
+            String[] data = new String[table.getColumnCount() - 1];
+            int row = table.getSelectedRow();
+            for (int i = 0; i < data.length; i++) {
+                if (table.getValueAt(table.getSelectedRow(), i + 1) != null) {
+                    data[i] = table.getValueAt(table.getSelectedRow(), i + 1).toString();
+                } else {
+                    data[i] = "";
+                }
             }
-        }
-        if (item_desc_map.containsKey(table.getValueAt(table.getSelectedRow(), 0).toString())) {
-            ItemDescription temp_item_desc = item_desc_map.get(table.getValueAt(table.getSelectedRow(), 0).toString());
-            Dimension prev_dim = temp_item_desc.getSize();
-            temp_item_desc.setExtendedState( JFrame.MAXIMIZED_BOTH );
-            temp_item_desc.setSize(prev_dim);
-            Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-            temp_item_desc.setLocation(dim.width / 2 - temp_item_desc.getSize().width / 2, dim.height / 2 - temp_item_desc.getSize().height / 2);
-        } else {
             ItemDescription id = new ItemDescription();
             id.intialMain(this);
             id.setID(table.getValueAt(table.getSelectedRow(), 0).toString());
@@ -164,6 +167,10 @@ public class storageTabs extends javax.swing.JFrame {
             id.inserData(data);
             id.setVisible(true);
             item_desc_map.put(table.getValueAt(table.getSelectedRow(), 0).toString(), id);
+            //id.setAlwaysOnTop(true);
+        } else {
+            item_desc_map.get(table.getValueAt(table.getSelectedRow(), 0).toString()).setState(java.awt.Frame.NORMAL);
+            item_desc_map.get(table.getValueAt(table.getSelectedRow(), 0).toString()).toFront();
         }
 
     }
@@ -175,45 +182,60 @@ public class storageTabs extends javax.swing.JFrame {
 
     public void doubleClickBaz() {
         JTable table = this.baz_raam_jTable;
-        String[] data = new String[table.getColumnCount() - 1];
-        int row = table.getSelectedRow();
-        for (int i = 0; i < data.length; i++) {
-            if (table.getValueAt(table.getSelectedRow(), i + 1) != null) {
-                data[i] = table.getValueAt(table.getSelectedRow(), i + 1).toString();
-            } else {
-                data[i] = "";
+        if (!item_desc_map.containsKey(table.getValueAt(table.getSelectedRow(), 0).toString())) {
+            String[] data = new String[table.getColumnCount() - 1];
+            int row = table.getSelectedRow();
+            for (int i = 0; i < data.length; i++) {
+                if (table.getValueAt(table.getSelectedRow(), i + 1) != null) {
+                    data[i] = table.getValueAt(table.getSelectedRow(), i + 1).toString();
+                } else {
+                    data[i] = "";
+                }
             }
+
+            ItemDescription id = new ItemDescription();
+            id.setID(table.getValueAt(table.getSelectedRow(), 0).toString());
+            id.intialMain(this);
+            id.setAdmin(this.isAdmin);
+            id.setDB(db);
+            id.isBaz();
+            id.setTableName(this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase() + "_new");
+            id.inserData(data);
+            id.setVisible(true);
+            item_desc_map.put(table.getValueAt(table.getSelectedRow(), 0).toString(), id);
+            //id.setAlwaysOnTop(true);
+        } else {
+            item_desc_map.get(table.getValueAt(table.getSelectedRow(), 0).toString()).setState(java.awt.Frame.NORMAL);
+            item_desc_map.get(table.getValueAt(table.getSelectedRow(), 0).toString()).toFront();
         }
-        ItemDescription id = new ItemDescription();
-        id.setID(table.getValueAt(table.getSelectedRow(), 0).toString());
-        id.intialMain(this);
-        id.setAdmin(this.isAdmin);
-        id.setDB(db);
-        id.isBaz();
-        id.setTableName(this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase() + "_new");
-        id.inserData(data);
-        id.setVisible(true);
     }
 
     public void doubleClickSufa() {
         JTable table = this.sufa_jTable;
-        String[] data = new String[table.getColumnCount() - 1];
-        int row = table.getSelectedRow();
-        for (int i = 0; i < data.length; i++) {
-            if (table.getValueAt(table.getSelectedRow(), i + 1) != null) {
-                data[i] = table.getValueAt(table.getSelectedRow(), i + 1).toString();
-            } else {
-                data[i] = "";
+        if (!item_desc_map.containsKey(table.getValueAt(table.getSelectedRow(), 0).toString())) {
+            String[] data = new String[table.getColumnCount() - 1];
+            int row = table.getSelectedRow();
+            for (int i = 0; i < data.length; i++) {
+                if (table.getValueAt(table.getSelectedRow(), i + 1) != null) {
+                    data[i] = table.getValueAt(table.getSelectedRow(), i + 1).toString();
+                } else {
+                    data[i] = "";
+                }
             }
+            ItemDescription id = new ItemDescription();
+            id.setID(table.getValueAt(table.getSelectedRow(), 0).toString());
+            id.intialMain(this);
+            id.setAdmin(this.isAdmin);
+            id.setDB(db);
+            id.setTableName(this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase() + "_new");
+            id.inserData(data);
+            id.setVisible(true);
+            item_desc_map.put(table.getValueAt(table.getSelectedRow(), 0).toString(), id);
+            //id.setAlwaysOnTop(true);
+        } else {
+            item_desc_map.get(table.getValueAt(table.getSelectedRow(), 0).toString()).setState(java.awt.Frame.NORMAL);
+            item_desc_map.get(table.getValueAt(table.getSelectedRow(), 0).toString()).toFront();
         }
-        ItemDescription id = new ItemDescription();
-        id.setID(table.getValueAt(table.getSelectedRow(), 0).toString());
-        id.intialMain(this);
-        id.setAdmin(this.isAdmin);
-        id.setDB(db);
-        id.setTableName(this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase() + "_new");
-        id.inserData(data);
-        id.setVisible(true);
     }
 
     public void firstLoad() {
@@ -410,6 +432,7 @@ public class storageTabs extends javax.swing.JFrame {
         edit_user_jMenuItem2 = new javax.swing.JMenuItem();
         delete_user_jMenuItem3 = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
+        debug_jMenuItem2 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Hzor Storage System");
@@ -666,13 +689,21 @@ public class storageTabs extends javax.swing.JFrame {
         });
         admin_menu.add(delete_user_jMenuItem3);
 
-        jMenuItem1.setText("log");
+        jMenuItem1.setText("Log");
         jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem1ActionPerformed(evt);
             }
         });
         admin_menu.add(jMenuItem1);
+
+        debug_jMenuItem2.setText("Debug");
+        debug_jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                debug_jMenuItem2ActionPerformed(evt);
+            }
+        });
+        admin_menu.add(debug_jMenuItem2);
 
         jMenuBar1.add(admin_menu);
 
@@ -729,32 +760,60 @@ public class storageTabs extends javax.swing.JFrame {
         // TODO add your handling code here:
         JTable[] my_tables = {this.barak_jTable, this.sufa_jTable, this.baz_raam_jTable};
         JTable table = my_tables[this.tabbs.getSelectedIndex()];
-        String table_name = this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase() + "_new";
+        String table_name = this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).trim().toLowerCase() + "_new";
         if (!table.getSelectionModel().isSelectionEmpty()) {
             String id = table.getValueAt(table.getSelectedRow(), 0).toString();
-            int one = -1;
-            String user_name = this._user;
-            Object temp = this.db.updateItemQuntity(table_name, id, one, user_name);
-            if (temp instanceof Exception) {
-                System.out.println("quntity at storage for item '" + table.getValueAt(table.getSelectedRow(), 1).toString() + "' is 0");
-                JOptionPane.showMessageDialog(null, "quntity at storage for item '" + table.getValueAt(table.getSelectedRow(), 1).toString() + "' is 0 \n " + ((Exception) temp).getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);
-            };
-            int index = 5; // 5 is default for my implement;
-            for (int i = 0; i < table.getColumnCount(); i++) {
-                if (table.getColumnName(i).equals("quntity at storage")) {
-                    index = i;
-                    break;
+            String name = table.getValueAt(table.getSelectedRow(), 1).toString();
+            String pn = table.getValueAt(table.getSelectedRow(), 2).toString();
+            String sn = table.getValueAt(table.getSelectedRow(), 3).toString();
+            String[] item_serials = this.db.getItemSerials(table_name, id);
+            if (item_serials != null && item_serials.length == 0) {
+                JOptionPane.showMessageDialog(null, "Serial number not found , Please contact with your administrator", "Alert", 0);
+            } else {
+
+                int index = 5;
+                for (int i = 0; i < table.getColumnCount(); i++) {
+                    if (table.getColumnName(i).equals("quntity at storage")) {
+                        index = i;
+                        break;
+                    }
+                }
+                String qunt = table.getModel().getValueAt(table.getSelectedRow(), index).toString();
+                if (Integer.parseInt(qunt) == 0) {
+                    JOptionPane.showMessageDialog(null, "quntity at storage for item '" + table.getValueAt(table.getSelectedRow(), 1).toString() + "' is 0", "Alert", 0);
+                } else {
+
+                    JPanel panel = new JPanel();
+                    int option_int = JOptionPane.showOptionDialog(null, panel, "Which serial you take?", 1, -1, null, (Object[]) item_serials, null);
+
+                    if (option_int >= 0) {
+                        String taken_serial = item_serials[option_int];
+                        List<String> list = new ArrayList<>(Arrays.asList(item_serials));
+                        list.remove(taken_serial);
+                        item_serials = list.toArray(new String[0]);
+                        String update_serials = String.join(",", (CharSequence[]) item_serials);
+                        int one = -1;
+                        String user_name = this._user;
+                        Object temp = this.db.updateItemQuntity(table_name, id, one, user_name, update_serials);
+                        String image_path = db.getImagePath(name, pn, sn, table_name);
+                        String image_id = db.getImageID(name, pn, sn, table_name);
+                        if (image_id != null) {
+                            this.db.updateChangesForImageDB(image_id, user_name, name, pn, update_serials, table_name, image_path);
+                        }
+                        if (temp instanceof Exception) {
+                            JOptionPane.showMessageDialog(null, "quntity at storage for item '" + table.getValueAt(table.getSelectedRow(), 1).toString() + "' is 0 \n " + ((Exception) temp).getMessage(), "Alert", 0);
+                        } else {
+
+                            table.getModel().setValueAt(Integer.valueOf(Integer.parseInt(qunt) + one), table.getSelectedRow(), index);
+                            search_buttonActionPerformed(evt);
+                        }
+
+                    }
                 }
             }
-            String qunt = table.getModel().getValueAt(table.getSelectedRow(), index).toString();
-            if (Integer.parseInt(qunt) == 0) {
-                JOptionPane.showMessageDialog(null, "quntity at storage for item '" + table.getValueAt(table.getSelectedRow(), 1).toString() + "' is 0", "Alert", JOptionPane.ERROR_MESSAGE);
-            } else {
-                table.getModel().setValueAt(Integer.parseInt(qunt) + one, table.getSelectedRow(), index);
-            }
-            //this.refresh_jButton1ActionPerformed(evt);
         } else {
-            JOptionPane.showMessageDialog(null, "Row is not selected", "Alert", JOptionPane.ERROR_MESSAGE);
+
+            JOptionPane.showMessageDialog(null, "Row is not selected", "Alert", 0);
         }
     }//GEN-LAST:event_get_item_buttonActionPerformed
 
@@ -762,28 +821,60 @@ public class storageTabs extends javax.swing.JFrame {
         // TODO add your handling code here:
         JTable[] my_tables = {this.barak_jTable, this.sufa_jTable, this.baz_raam_jTable};
         JTable table = my_tables[this.tabbs.getSelectedIndex()];
-        String table_name = this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase() + "_new";
+        String table_name = this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).trim().toLowerCase() + "_new";
         if (!table.getSelectionModel().isSelectionEmpty()) {
             String id = table.getValueAt(table.getSelectedRow(), 0).toString();
-            int one = 1;
-            String user_name = this._user;
-            Object temp = this.db.updateItemQuntity(table_name, id, one, user_name);
-            if (temp instanceof Exception) {
-                //System.out.println("quntity at storage for item '"+table.getValueAt(table.getSelectedRow(), 1).toString()+"' is 0");
-                JOptionPane.showMessageDialog(null, "Error! \n " + ((Exception) temp).getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);
-            };
-            int index = 5; // 5 is default for my implement;
-            for (int i = 0; i < table.getColumnCount(); i++) {
-                if (table.getColumnName(i).equals("quntity at storage")) {
-                    index = i;
-                    break;
+            String name = table.getValueAt(table.getSelectedRow(), 1).toString();
+            String pn = table.getValueAt(table.getSelectedRow(), 2).toString();
+            String sn = table.getValueAt(table.getSelectedRow(), 3).toString();
+            String[] item_serials = this.db.getItemSerials(table_name, id);
+            Object[] options = {"insert", "cancel"};
+
+            JPanel panel = new JPanel();
+            panel.add(new JLabel("S.N  : "));
+            JTextField new_serial_textField = new JTextField(16);
+            panel.add(new_serial_textField);
+            int option_int = JOptionPane.showOptionDialog(null, panel, "Enter serial number", 1, -1, null, options, null);
+
+            if (option_int == 0) {
+                List<String> list = new ArrayList<>(Arrays.asList(item_serials));
+                if (list.contains(new_serial_textField.getText())) {
+                    JOptionPane.showMessageDialog(null, "Serial number alredy exist", "Alert", 0);
+                } else if (new_serial_textField.getText().equals("")) {
+                    JOptionPane.showMessageDialog(null, "Serial number cannot be blank", "Alert", 0);
+                } else {
+
+                    list.add(new_serial_textField.getText());
+                    item_serials = list.toArray(new String[0]);
+                    String update_serials = String.join(",", (CharSequence[]) item_serials);
+
+                    int one = 1;
+                    String user_name = this._user;
+                    Object temp = this.db.updateItemQuntity(table_name, id, one, user_name, update_serials);
+                    String image_path = db.getImagePath(name, pn, sn, table_name);
+                    String image_id = db.getImageID(name, pn, sn, table_name);
+                    if (image_id != null) {
+                        this.db.updateChangesForImageDB(image_id, user_name, name, pn, update_serials, table_name, image_path);
+                    }
+                    if (temp instanceof Exception) {
+                        JOptionPane.showMessageDialog(null, "Error! \n " + ((Exception) temp).getMessage(), "Alert", 0);
+                    }
+                    int index = 5;
+                    for (int i = 0; i < table.getColumnCount(); i++) {
+                        if (table.getColumnName(i).equals("quntity at storage")) {
+                            index = i;
+                            break;
+                        }
+                    }
+                    String qunt = table.getModel().getValueAt(table.getSelectedRow(), index).toString();
+                    table.getModel().setValueAt(Integer.valueOf(Integer.parseInt(qunt) + one), table.getSelectedRow(), index);
+
+                    search_buttonActionPerformed(evt);
                 }
             }
-            String qunt = table.getModel().getValueAt(table.getSelectedRow(), index).toString();
-            table.getModel().setValueAt(Integer.parseInt(qunt) + one, table.getSelectedRow(), index);
-            //this.refresh_jButton1ActionPerformed(evt);
         } else {
-            JOptionPane.showMessageDialog(null, "Row is not selected", "Alert", JOptionPane.ERROR_MESSAGE);
+
+            JOptionPane.showMessageDialog(null, "Row is not selected", "Alert", 0);
         }
     }//GEN-LAST:event_add_item_buttonActionPerformed
 
@@ -903,6 +994,37 @@ public class storageTabs extends javax.swing.JFrame {
         lf.setVisible(true);
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
+    private void debug_jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_debug_jMenuItem2ActionPerformed
+        // TODO add your handling code here:
+        String[] my_tables = {"barak_new" , "sufa_new" , "baz_new"};
+        String text = "";
+        for (int i = 0; i < my_tables.length; i++) {
+            text = text + "\n" + "============= " + my_tables[i] + "============= ";
+            ArrayList<String[]> table = db.getTable(my_tables[i]);
+            for (int j = 0; j < table.size(); j++) {
+                String row[] = table.get(j);
+                String img_pth = this.db.getImagePath(row[1], row[2], row[3], my_tables[i]);
+                if(img_pth != null){
+                    File f = new File(img_pth);
+                    if(!f.exists()) { 
+                        text = text + "\n" + row[1] +"\t"+ row[2] +"\t"+ row[3] +"\t"+ my_tables[i];
+                    }
+                }
+            }
+        }
+        File myFoo = new File("items without image.log");
+        FileWriter fooWriter;
+        try {
+            fooWriter = new FileWriter(myFoo, false); // true to append
+            fooWriter.write(text);
+            fooWriter.close();
+        } catch (IOException ex) {
+            Logger.getLogger(storageTabs.class.getName()).log(Level.SEVERE, null, ex);
+        }
+                                                             // false to overwrite.
+        
+    }//GEN-LAST:event_debug_jMenuItem2ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -952,6 +1074,7 @@ public class storageTabs extends javax.swing.JFrame {
     private javax.swing.JPanel baz_raam_jpanel;
     private javax.swing.JMenuItem copy_jMenuItem4;
     private javax.swing.JMenuItem create_new_user_jMenuItem1;
+    private javax.swing.JMenuItem debug_jMenuItem2;
     private javax.swing.JButton delete_row_jButton;
     private javax.swing.JMenuItem delete_user_jMenuItem3;
     private javax.swing.JMenu edit_menu;

@@ -11,28 +11,27 @@ import javax.swing.table.DefaultTableModel;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 /**
  *
  * @author Itzik
  */
 public class logFrame extends javax.swing.JFrame {
-        
-    private DataBase db ;
-    
+
+    private DataBase db;
+
     /**
      * Creates new form logFrame
      */
     public logFrame() {
         initComponents();
         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-        this.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
+        this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
     }
 
-    public void setDB(DataBase d){
+    public void setDB(DataBase d) {
         this.db = d;
     }
-    
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -115,38 +114,39 @@ public class logFrame extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    
+
     private void find_jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_find_jButton1ActionPerformed
         // TODO add your handling code here:
-        SimpleDateFormat ft = new SimpleDateFormat ("yyyy-MM-dd"); 
-        if(this.date_picker_jDateChooser1.getDate() != null){
-            int count = 0 ;
+        SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd");
+        if (this.date_picker_jDateChooser1.getDate() != null) {
+            int count = 0;
             ArrayList<String[]> table = this.db.getTable("log");
             DefaultTableModel model = (DefaultTableModel) this.table_jTable1.getModel();
             model.setRowCount(0);
             String[] row = new String[10];
             for (int i = 0; i < table.size(); i++) {
-                for (int j = 0; j < table.get(i).length; j++) {
-                    row[j] = table.get(i)[j];
+                for (int j = 0; j < ((String[]) table.get(i)).length; j++) {
+                    row[j] = ((String[]) table.get(i))[j];
                 }
-                if(row[4].contains(ft.format(this.date_picker_jDateChooser1.getDate()).toString())){
-                    model.addRow(row);
+                if (row[4].contains(ft.format(this.date_picker_jDateChooser1.getDate()).toString())) {
+                    model.addRow((Object[]) row);
                     count++;
-                }   
+                }
             }
-            if(count == 0){
-                JOptionPane.showMessageDialog(null, "There is no logs from: "+ft.format(this.date_picker_jDateChooser1.getDate()).toString(), "Alert", JOptionPane.ERROR_MESSAGE);
+            if (count == 0) {
+                JOptionPane.showMessageDialog(null, "There is no logs from: " + ft.format(this.date_picker_jDateChooser1.getDate()).toString(), "Alert", 0);
             }
-        }
-        else{
+        } else {
+
             ArrayList<String[]> table = this.db.getTable("log");
+            DefaultTableModel model = (DefaultTableModel) this.table_jTable1.getModel();
+            model.setRowCount(0);
             String[] row = new String[10];
             for (int i = 0; i < table.size(); i++) {
-                for (int j = 0; j < table.get(i).length; j++) {
-                    row[j] = table.get(i)[j];
+                for (int j = 0; j < ((String[]) table.get(i)).length; j++) {
+                    row[j] = ((String[]) table.get(i))[j];
                 }
-                DefaultTableModel model = (DefaultTableModel) this.table_jTable1.getModel();
-                model.addRow(row);
+                model.addRow((Object[]) row);
             }
         }
     }//GEN-LAST:event_find_jButton1ActionPerformed

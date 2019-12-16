@@ -1,4 +1,5 @@
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import javax.swing.JOptionPane;
@@ -8,20 +9,27 @@ import javax.swing.JOptionPane;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 /**
  *
  * @author Itzik
  */
 public class main extends javax.swing.JFrame {
-    private    DataBase db = new DataBase();
-    private    storageTabs st = new storageTabs();
-    
+
+    private DataBase db;
+    private storageTabs st;
+
     /**
      * Creates new form NewJFrame
      */
     public main() {
         initComponents();
+        this.db = new DataBase();
+        this.st = new storageTabs();
+        this.database_jLabel5.setText("DB: " + this.db.getDbName());
+        this.database_jLabel5.setBackground(Color.white);
+        if (this.db.getDbName().contains("testing")) {
+            this.warning_jLabel4.setText("Warning!");
+        }
     }
 
     /**
@@ -34,6 +42,8 @@ public class main extends javax.swing.JFrame {
     private void initComponents() {
 
         jPanel1 = new javax.swing.JPanel();
+        warning_jLabel4 = new javax.swing.JLabel();
+        database_jLabel5 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         username_TF = new javax.swing.JTextField();
@@ -49,14 +59,24 @@ public class main extends javax.swing.JFrame {
 
         jPanel1.setLayout(null);
 
+        warning_jLabel4.setBackground(new java.awt.Color(0, 0, 0));
+        warning_jLabel4.setFont(new java.awt.Font("Arial", 1, 24)); // NOI18N
+        warning_jLabel4.setForeground(new java.awt.Color(255, 0, 51));
+        jPanel1.add(warning_jLabel4);
+        warning_jLabel4.setBounds(0, 340, 130, 40);
+
+        database_jLabel5.setBackground(new java.awt.Color(0, 0, 0));
+        database_jLabel5.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
+        database_jLabel5.setForeground(new java.awt.Color(255, 255, 255));
+        jPanel1.add(database_jLabel5);
+        database_jLabel5.setBounds(0, 370, 220, 20);
+
         jLabel2.setFont(new java.awt.Font("Arial", 1, 48)); // NOI18N
-        jLabel2.setForeground(new java.awt.Color(0, 0, 0));
         jLabel2.setText("Storage");
         jPanel1.add(jLabel2);
         jLabel2.setBounds(380, 20, 190, 56);
 
         jLabel3.setFont(new java.awt.Font("Arial", 1, 48)); // NOI18N
-        jLabel3.setForeground(new java.awt.Color(0, 0, 0));
         jLabel3.setText("Hazor");
         jPanel1.add(jLabel3);
         jLabel3.setBounds(430, 0, 140, 50);
@@ -65,7 +85,7 @@ public class main extends javax.swing.JFrame {
         jPanel1.add(username_TF);
         username_TF.setBounds(60, 50, 160, 30);
 
-        password_field.setText("jPasswordField1");
+        password_field.setText("jPassw");
         jPanel1.add(password_field);
         password_field.setBounds(60, 90, 160, 30);
 
@@ -76,7 +96,7 @@ public class main extends javax.swing.JFrame {
             }
         });
         jPanel1.add(login_button);
-        login_button.setBounds(90, 150, 75, 33);
+        login_button.setBounds(90, 150, 75, 23);
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/The-Squadron-696x522.jpg"))); // NOI18N
         jPanel1.add(jLabel1);
@@ -100,11 +120,9 @@ public class main extends javax.swing.JFrame {
         // TODO add your handling code here:
         if (this.username_TF.getText().length() == 0 || this.password_field.getText().length() == 0) {
             JOptionPane.showMessageDialog(null, "Username or Password can not be blank", "Alert", JOptionPane.ERROR_MESSAGE);
-        }
-        else if(!db.userAuth(this.username_TF.getText(), this.password_field.getText())){
+        } else if (!db.userAuth(this.username_TF.getText(), this.password_field.getText())) {
             JOptionPane.showMessageDialog(null, "incorrect Username or Password", "Alert", JOptionPane.ERROR_MESSAGE);
-        }
-        else{
+        } else {
             this.st = new storageTabs();
             this.st.setDB(this.db);
             this.st.firstLoad();
@@ -150,13 +168,14 @@ public class main extends javax.swing.JFrame {
                 main nj = new main();//.setVisible(true);
                 Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
                 nj.getRootPane().setDefaultButton(nj.login_button);
-                nj.setLocation(dim.width/2-nj.getSize().width/2, dim.height/2-nj.getSize().height/2);
+                nj.setLocation(dim.width / 2 - nj.getSize().width / 2, dim.height / 2 - nj.getSize().height / 2);
                 nj.setVisible(true);
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel database_jLabel5;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -164,5 +183,6 @@ public class main extends javax.swing.JFrame {
     private javax.swing.JButton login_button;
     private javax.swing.JPasswordField password_field;
     private javax.swing.JTextField username_TF;
+    private javax.swing.JLabel warning_jLabel4;
     // End of variables declaration//GEN-END:variables
 }
