@@ -10,6 +10,7 @@
  */
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -178,8 +179,11 @@ public class DataBase {
         init();
         ResultSet result = null;
         String search_columns = "name , part_number , serial_number ";
-
         String db_table = "SELECT * FROM " + table_name + " WHERE " + search_columns.split(",")[0] + "  LIKE '%" + term + "%' or " + search_columns.split(",")[1] + " LIKE '%" + term + "%' or " + search_columns.split(",")[2] + " LIKE '%" + term + "%' ";
+        if(table_name.equals("items_tracking")){
+            search_columns = "name , serial_number ";
+            db_table = "SELECT * FROM " + table_name + " WHERE " + search_columns.split(",")[0] + "  LIKE '%" + term + "%' or " + search_columns.split(",")[1] + " LIKE '%" + term + "%' ";
+        }
         if (table_name.contains("baz")) {
             search_columns = "name , part_number , serial_number , iaf_number";
             db_table = db_table + "or " + search_columns.split(",")[3] + " LIKE '%" + term + "%' ";
@@ -349,8 +353,20 @@ public class DataBase {
             if (one == 1) {
                 action = "Add quntity";
             }
-            String log = "INSERT INTO log (user , item , action , timestamp , simulator) VALUES ('" + user_name + "' , '" + name + "' , '" + action + "' , '" + (new Timestamp(System.currentTimeMillis())).toString() + "' , '" + table_name.replace("_new", "") + "');";
-            this.stmt.executeUpdate(log);
+            //String log = "INSERT INTO log (user , item , action , timestamp , simulator) VALUES ('" + user_name + "' , '" + name + "' , '" + action + "' , '" + (new Timestamp(System.currentTimeMillis())).toString() + "' , '" + table_name.replace("_new", "") + "');";
+            //this.stmt.executeUpdate(log);
+            String log = "INSERT INTO log (user , item , action , timestamp, simulator) VALUES (?,?,?,?,?);";
+            PreparedStatement statement;
+            statement = conn.prepareStatement(log);
+            {
+                statement.setString(1, user_name);
+                statement.setString(2, name);
+                statement.setString(3, action);
+                statement.setString(4, (new Timestamp(System.currentTimeMillis())).toString());
+                statement.setString(5, table_name.replace("_new", ""));                
+                //this.stmt.executeUpdate();
+            }
+            statement.executeUpdate();
             return Boolean.valueOf(true);
         } catch (Exception e) {
             e.printStackTrace();
@@ -373,8 +389,20 @@ public class DataBase {
         try {
             this.stmt.executeUpdate(str);
             String action = "insert new item";
-            String log = "INSERT INTO log (user , item , action , timestamp, simulator) VALUES ('" + user_name + "' , '" + name + "' , '" + action + "' , '" + (new Timestamp(System.currentTimeMillis())).toString() + "' , '" + table_name.replace("_new", "") + "');";
-            this.stmt.executeUpdate(log);
+            //String log = "INSERT INTO log (user , item , action , timestamp, simulator) VALUES ('" + user_name + "' , '" + name + "' , '" + action + "' , '" + (new Timestamp(System.currentTimeMillis())).toString() + "' , '" + table_name.replace("_new", "") + "');";
+            //this.stmt.executeUpdate(log);
+            String log = "INSERT INTO log (user , item , action , timestamp, simulator) VALUES (?,?,?,?,?);";
+            PreparedStatement statement;
+            statement = conn.prepareStatement(log);
+            {
+                statement.setString(1, user_name);
+                statement.setString(2, name);
+                statement.setString(3, action);
+                statement.setString(4, (new Timestamp(System.currentTimeMillis())).toString());
+                statement.setString(5, table_name.replace("_new", ""));                
+                //this.stmt.executeUpdate();
+            }
+            statement.executeUpdate();
             return Boolean.valueOf(true);
         } catch (Exception e) {
             e.printStackTrace();
@@ -393,12 +421,27 @@ public class DataBase {
         if (table_name.equals("baz_new")) {
             str = "UPDATE " + table_name + "  SET name = '" + name + "' , part_number = '" + pn + "' , serial_number = '" + sn + "' , iaf_number = '" + prn + "' , quntity_at_storage = '" + qas + "' , loan_from_iaf = '" + sb + "' , aircraft_type = '" + qasys + "' , location_at_storage = '" + las + "' , comments = '" + comments + "' WHERE " + table_name + "_id = '" + id + "';";
         }
+        else if (table_name.equals("items_tracking")) {
+            str = "UPDATE " + table_name + "  SET name = '" + name + "' , attachments = '" + pn + "' , serial_number = '" + sn + "' , location = '" + prn + "' , shipping_date = '" + qas + "' , date_received = '" + sb + "' , simulator = '" + qasys + "' , worker_name = '" + las + "' , comments = '" + comments + "' WHERE id = '" + id + "';";
+        }
 
         try {
             this.stmt.executeUpdate(str);
             String action = "update item description";
-            String log = "INSERT INTO log (user , item , action , timestamp, simulator) VALUES ('" + user_name + "' , '" + name + "' , '" + action + "' , '" + (new Timestamp(System.currentTimeMillis())).toString() + "' , '" + table_name.replace("_new", "") + "');";
-            this.stmt.executeUpdate(log);
+            //String log = "INSERT INTO log (user , item , action , timestamp, simulator) VALUES ('" + user_name + "' , '" + name + "' , '" + action + "' , '" + (new Timestamp(System.currentTimeMillis())).toString() + "' , '" + table_name.replace("_new", "") + "');";
+            //this.stmt.executeUpdate(log);
+            String log = "INSERT INTO log (user , item , action , timestamp, simulator) VALUES (?,?,?,?,?);";
+            PreparedStatement statement;
+            statement = conn.prepareStatement(log);
+            {
+                statement.setString(1, user_name);
+                statement.setString(2, name);
+                statement.setString(3, action);
+                statement.setString(4, (new Timestamp(System.currentTimeMillis())).toString());
+                statement.setString(5, table_name.replace("_new", ""));                
+                //this.stmt.executeUpdate();
+            }
+            statement.executeUpdate();
             return Boolean.valueOf(true);
         } catch (Exception e) {
             e.printStackTrace();
@@ -412,12 +455,26 @@ public class DataBase {
     public synchronized Object deleteRow(String table_name, String id, String name, String user_name) {
         init();
         String str = "DELETE FROM " + table_name + " where " + table_name + "_id = '" + id + "';";
-
+        if(table_name.equals("items_tracking")){
+            str = "DELETE FROM " + table_name + " where id = '" + id + "';";
+        }
         try {
             this.stmt.executeUpdate(str);
             String action = "delete row";
-            String log = "INSERT INTO log (user , item , action , timestamp, simulator) VALUES ('" + user_name + "' , '" + name + "' , '" + action + "' , '" + (new Timestamp(System.currentTimeMillis())).toString() + "' , '" + table_name.replace("_new", "") + "');";
-            this.stmt.executeUpdate(log);
+            //String log = "INSERT INTO log (user , item , action , timestamp, simulator) VALUES ('" + user_name + "' , '" + name + "' , '" + action + "' , '" + (new Timestamp(System.currentTimeMillis())).toString() + "' , '" + table_name.replace("_new", "") + "');";
+            String log = "INSERT INTO log (user , item , action , timestamp, simulator) VALUES (?,?,?,?,?);";
+            PreparedStatement statement;
+            statement = conn.prepareStatement(log);
+            {
+                statement.setString(1, user_name);
+                statement.setString(2, name);
+                statement.setString(3, action);
+                statement.setString(4, (new Timestamp(System.currentTimeMillis())).toString());
+                statement.setString(5, table_name.replace("_new", ""));                
+                //this.stmt.executeUpdate();
+            }
+            statement.executeUpdate();
+            //this.stmt.executeUpdate(log);
             return Boolean.valueOf(true);
         } catch (Exception e) {
             e.printStackTrace();
@@ -435,8 +492,20 @@ public class DataBase {
         try {
             this.stmt.executeUpdate(str);
             String action = "delete user";
-            String log = "INSERT INTO log (user , item , action , timestamp , simulator) VALUES ('" + creator + "' , '" + username + "' , '" + action + "' , '" + (new Timestamp(System.currentTimeMillis())).toString() + "' , 'DB');";
-            this.stmt.executeUpdate(log);
+            //String log = "INSERT INTO log (user , item , action , timestamp , simulator) VALUES ('" + creator + "' , '" + username + "' , '" + action + "' , '" + (new Timestamp(System.currentTimeMillis())).toString() + "' , 'DB');";
+            //this.stmt.executeUpdate(log);
+            String log = "INSERT INTO log (user , item , action , timestamp, simulator) VALUES (?,?,?,?,?);";
+            PreparedStatement statement;
+            statement = conn.prepareStatement(log);
+            {
+                statement.setString(1, creator);
+                statement.setString(2, username);
+                statement.setString(3, action);
+                statement.setString(4, (new Timestamp(System.currentTimeMillis())).toString());
+                statement.setString(5, "DB");                
+                //this.stmt.executeUpdate();
+            }
+            statement.executeUpdate();
             return Boolean.valueOf(true);
         } catch (Exception e) {
             e.printStackTrace();
@@ -487,8 +556,20 @@ public class DataBase {
         try {
             this.stmt.executeUpdate(str);
             String action = "add new user";
-            String log = "INSERT INTO log (user , item , action , timestamp , simulator) VALUES ('" + creator + "' , '" + username + "' , '" + action + "' , '" + (new Timestamp(System.currentTimeMillis())).toString() + "' , 'DB');";
-            this.stmt.executeUpdate(log);
+            //String log = "INSERT INTO log (user , item , action , timestamp , simulator) VALUES ('" + creator + "' , '" + username + "' , '" + action + "' , '" + (new Timestamp(System.currentTimeMillis())).toString() + "' , 'DB');";
+            //this.stmt.executeUpdate(log);
+            String log = "INSERT INTO log (user , item , action , timestamp, simulator) VALUES (?,?,?,?,?);";
+            PreparedStatement statement;
+            statement = conn.prepareStatement(log);
+            {
+                statement.setString(1, creator);
+                statement.setString(2, username);
+                statement.setString(3, action);
+                statement.setString(4, (new Timestamp(System.currentTimeMillis())).toString());
+                statement.setString(5, "DB");                
+                //this.stmt.executeUpdate();
+            }
+            statement.executeUpdate();
             return Boolean.valueOf(true);
         } catch (Exception e) {
             e.printStackTrace();
@@ -507,8 +588,20 @@ public class DataBase {
         try {
             this.stmt.executeUpdate(str);
             String action = "update user";
-            String log = "INSERT INTO log (user , item , action , timestamp , simulator) VALUES ('" + creator + "' , '" + username + "' , '" + action + "' , '" + (new Timestamp(System.currentTimeMillis())).toString() + "' , 'DB');";
-            this.stmt.executeUpdate(log);
+           // String log = "INSERT INTO log (user , item , action , timestamp , simulator) VALUES ('" + creator + "' , '" + username + "' , '" + action + "' , '" + (new Timestamp(System.currentTimeMillis())).toString() + "' , 'DB');";
+            //this.stmt.executeUpdate(log);
+            String log = "INSERT INTO log (user , item , action , timestamp, simulator) VALUES (?,?,?,?,?);";
+            PreparedStatement statement;
+            statement = conn.prepareStatement(log);
+            {
+                statement.setString(1, creator);
+                statement.setString(2, username);
+                statement.setString(3, action);
+                statement.setString(4, (new Timestamp(System.currentTimeMillis())).toString());
+                statement.setString(5, "DB");                
+                //this.stmt.executeUpdate();
+            }
+            statement.executeUpdate();
             return Boolean.valueOf(true);
         } catch (Exception e) {
             e.printStackTrace();
@@ -522,11 +615,28 @@ public class DataBase {
     public synchronized String getImagePath(String name, String pn, String sn, String simulator) {
         init();
         ResultSet result = null;
-        String str = "SELECT * FROM item_images where name = '" + name + "' and part_number = '" + pn + "' and serial_number = '" + sn + "' and simulator = '" + simulator + "';";
-
+        //String str = "SELECT * FROM item_images where name = '" + name + "' and part_number = '" + pn + "' and serial_number = '" + sn + "' and simulator = '" + simulator + "';";
+        String str = "SELECT * FROM item_images where name = ? and part_number = ? and serial_number = ? and simulator = ?;";
+        /*
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setString(1, postTitle);
+            statement.setString(2, postContent);
+            statement.executeUpdate();
+        }
+        */
         String ans = null;
         try {
-            result = this.stmt.executeQuery(str);
+            //result = this.stmt.executeQuery(str);
+            PreparedStatement statement;
+            statement = conn.prepareStatement(str);
+            {
+                statement.setString(1, name);
+                statement.setString(2, pn);
+                statement.setString(3, sn);
+                statement.setString(4, simulator);
+                //this.stmt.executeUpdate();
+            }
+            result = statement.executeQuery();
             if (!result.isBeforeFirst()) {
                 return null;
             }
@@ -593,8 +703,20 @@ public class DataBase {
 
         try {
             this.stmt.executeUpdate(str);
-            String log = "INSERT INTO log (user , item , action , timestamp , simulator) VALUES ('" + creator + "' , '" + name + "' , '" + action + "' , '" + (new Timestamp(System.currentTimeMillis())).toString() + "' , 'DB');";
-            this.stmt.executeUpdate(log);
+            //String log = "INSERT INTO log (user , item , action , timestamp , simulator) VALUES ('" + creator + "' , '" + name + "' , '" + action + "' , '" + (new Timestamp(System.currentTimeMillis())).toString() + "' , 'DB');";
+            //this.stmt.executeUpdate(log);
+            String log = "INSERT INTO log (user , item , action , timestamp, simulator) VALUES (?,?,?,?,?);";
+            PreparedStatement statement;
+            statement = conn.prepareStatement(log);
+            {
+                statement.setString(1, creator);
+                statement.setString(2, name);
+                statement.setString(3, action);
+                statement.setString(4, (new Timestamp(System.currentTimeMillis())).toString());
+                statement.setString(5, "DB");                
+                //this.stmt.executeUpdate();
+            }
+            statement.executeUpdate();
             return Boolean.valueOf(true);
         } catch (Exception e) {
             e.printStackTrace();
@@ -607,6 +729,7 @@ public class DataBase {
 
     public synchronized Object updateChangesForImageDB(String id, String creator, String name, String pn, String sn, String simulator, String image_path) {
         init();
+        PreparedStatement statement;
         String str = "";
         String action = "";
         action = "update item data at image DB";
@@ -614,9 +737,75 @@ public class DataBase {
 
         try {
             this.stmt.executeUpdate(str);
-            String log = "INSERT INTO log (user , item , action , timestamp , simulator) VALUES ('" + creator + "' , '" + name + "' , '" + action + "' , '" + (new Timestamp(System.currentTimeMillis())).toString() + "' , 'DB');";
-            this.stmt.executeUpdate(log);
+            //String log = "INSERT INTO log (user , item , action , timestamp , simulator) VALUES ('" + creator + "' , '" + name + "' , '" + action + "' , '" + (new Timestamp(System.currentTimeMillis())).toString() + "' , 'DB');";
+            //this.stmt.executeUpdate(log);
+            String log = "INSERT INTO log (user , item , action , timestamp, simulator) VALUES (?,?,?,?,?);";
+            statement = conn.prepareStatement(log);
+            {
+                statement.setString(1, creator);
+                statement.setString(2, name);
+                statement.setString(3, action);
+                statement.setString(4, (new Timestamp(System.currentTimeMillis())).toString());
+                statement.setString(5, "DB");                
+                //this.stmt.executeUpdate();
+            }
+            statement.executeUpdate();
             return Boolean.valueOf(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return e;
+        } finally {
+
+            closeConnection();
+        }
+    }
+    
+    
+    public synchronized Object insertItemTracking(String name ,String sn ,String location ,String sd ,String rd ,String simulator ,String wn ,String comments ,String attachments) {
+        init();
+
+        String str = "INSERT INTO items_tracking (name , serial_number , location , shipping_date , date_received , simulator , worker_name , comments , attachments) VALUES ('" + name + "','" + sn + "','" + location + "','" + sd + "','" + rd + "','" + simulator + "','" + wn + "','" + comments + "','" + attachments + "');";
+
+        try {
+            this.stmt.executeUpdate(str);
+            String action = "insert new item tracking";
+            //String log = "INSERT INTO log (user , item , action , timestamp, simulator) VALUES ('" + user_name + "' , '" + name + "' , '" + action + "' , '" + (new Timestamp(System.currentTimeMillis())).toString() + "' , '" + table_name.replace("_new", "") + "');";
+            //this.stmt.executeUpdate(log);
+            String log = "INSERT INTO log (user , item , action , timestamp, simulator) VALUES (?,?,?,?,?);";
+            PreparedStatement statement;
+            statement = conn.prepareStatement(log);
+            {
+                statement.setString(1, wn);
+                statement.setString(2, name);
+                statement.setString(3, action);
+                statement.setString(4, (new Timestamp(System.currentTimeMillis())).toString());
+                statement.setString(5, simulator);                
+                //this.stmt.executeUpdate();
+            }
+            statement.executeUpdate();
+            return Boolean.valueOf(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return e;
+        } finally {
+
+            closeConnection();
+        }
+    }
+    
+    
+    public synchronized Object getMinimumQuntity(String table , String id) {
+        init();
+        ResultSet result = null;
+        String str = "SELECT minimum_quntity from "+table+" WHERE "+table+"_id = '"+id+"'";
+
+        try {
+            result = this.stmt.executeQuery(str);
+            if (!result.isBeforeFirst()) {
+                return null;
+            }
+            result.next();
+            return 0 ;
         } catch (Exception e) {
             e.printStackTrace();
             return e;

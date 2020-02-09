@@ -63,7 +63,8 @@ public class ItemDescription extends javax.swing.JFrame {
         item_parms[6] = this.qasys_jTextField6;
         item_parms[7] = this.las_jTextField7;
         item_parms[8] = this.comments_jTextField8;
-
+        this.loan_jCheckBox1.setSelected(true);
+        this.loan_jCheckBox1.setEnabled(false);
         this.exitListener = new WindowAdapter() {
 
             @Override
@@ -82,7 +83,9 @@ public class ItemDescription extends javax.swing.JFrame {
                         cancelOperation();
                     }
                 } else {
-                    main.closeItemDescFrame(id);
+                    if(main != null){
+                        main.closeItemDescFrame(id);
+                    }
                     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
                 }
             }
@@ -231,7 +234,9 @@ public class ItemDescription extends javax.swing.JFrame {
         this.path = "";
         this.image_jLabel1.setIcon(null);
         this.setVisible(false);
-        main.closeItemDescFrame(this.id);
+        if(main != null){
+            main.closeItemDescFrame(this.id);
+        }
     }
 
     public static boolean isValidName(String text) {
@@ -300,6 +305,8 @@ public class ItemDescription extends javax.swing.JFrame {
         update_jButton = new javax.swing.JButton();
         cancel_operation_jButton1 = new javax.swing.JButton();
         life_cam_jButton1 = new javax.swing.JButton();
+        loan_jLabel11 = new javax.swing.JLabel();
+        loan_jCheckBox1 = new javax.swing.JCheckBox();
 
         javax.swing.GroupLayout file_jPanel1Layout = new javax.swing.GroupLayout(file_jPanel1);
         file_jPanel1.setLayout(file_jPanel1Layout);
@@ -458,6 +465,9 @@ public class ItemDescription extends javax.swing.JFrame {
             }
         });
 
+        loan_jLabel11.setFont(new java.awt.Font("Arial", 1, 14)); // NOI18N
+        loan_jLabel11.setText("Loan from IAF : ");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -465,60 +475,61 @@ public class ItemDescription extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                            .addComponent(name_jLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(88, 88, 88)
+                            .addComponent(name_jTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 280, Short.MAX_VALUE))
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                            .addComponent(pn_jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(34, 34, 34)
+                            .addComponent(pn_jTextField1))
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                            .addComponent(sn_jLabel2)
+                            .addGap(39, 39, 39)
+                            .addComponent(sn_jTextField2))
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                            .addComponent(pn_jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(25, 25, 25)
+                            .addComponent(prn_jTextField3))
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                            .addComponent(qas_jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(9, 9, 9)
+                            .addComponent(qas_jTextField4))
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                            .addComponent(sb_jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(25, 25, 25)
+                            .addComponent(sb_jTextField5))
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                            .addComponent(qasys_jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(9, 9, 9)
+                            .addComponent(qasys_jTextField6))
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                            .addComponent(las_jLabel7)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(las_jTextField7)))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(comments_jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(24, 24, 24)
-                        .addComponent(comments_jTextField8, javax.swing.GroupLayout.PREFERRED_SIZE, 280, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(28, 28, 28))
+                        .addComponent(comments_jTextField8, javax.swing.GroupLayout.PREFERRED_SIZE, 280, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(browse_jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(life_cam_jButton1)
+                            .addComponent(comments_jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
+                                .addGap(48, 48, 48)
+                                .addComponent(update_jButton)
+                                .addGap(203, 203, 203)
+                                .addComponent(cancel_operation_jButton1))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(36, 36, 36)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(comments_jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                        .addComponent(life_cam_jButton1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(browse_jButton1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                                .addGap(16, 16, 16)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(update_jButton)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(cancel_operation_jButton1))
-                                    .addComponent(image_jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                    .addComponent(name_jLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGap(88, 88, 88)
-                                    .addComponent(name_jTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 280, Short.MAX_VALUE))
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                    .addComponent(pn_jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGap(34, 34, 34)
-                                    .addComponent(pn_jTextField1))
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                    .addComponent(sn_jLabel2)
-                                    .addGap(39, 39, 39)
-                                    .addComponent(sn_jTextField2))
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                    .addComponent(pn_jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGap(25, 25, 25)
-                                    .addComponent(prn_jTextField3))
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                    .addComponent(qas_jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGap(9, 9, 9)
-                                    .addComponent(qas_jTextField4))
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                    .addComponent(sb_jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGap(25, 25, 25)
-                                    .addComponent(sb_jTextField5))
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                    .addComponent(qasys_jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGap(9, 9, 9)
-                                    .addComponent(qasys_jTextField6))
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                    .addComponent(las_jLabel7)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(las_jTextField7))))
-                        .addGap(0, 62, Short.MAX_VALUE))))
+                                    .addComponent(loan_jCheckBox1)
+                                    .addComponent(image_jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                    .addComponent(loan_jLabel11))
+                .addGap(31, 31, 31))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -556,26 +567,29 @@ public class ItemDescription extends javax.swing.JFrame {
                     .addComponent(las_jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(las_jTextField7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(6, 6, 6)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(comments_jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(comments_jTextField8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(comments_jTextField8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(loan_jCheckBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(comments_jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(loan_jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(6, 6, 6)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(comments_jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(browse_jButton1)
+                        .addComponent(browse_jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(life_cam_jButton1))
                     .addComponent(image_jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(16, 16, 16)
-                        .addComponent(update_jButton))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(18, 18, 18)
-                        .addComponent(cancel_operation_jButton1)))
-                .addContainerGap(32, Short.MAX_VALUE))
+                .addGap(32, 32, 32)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cancel_operation_jButton1)
+                    .addComponent(update_jButton))
+                .addContainerGap(19, Short.MAX_VALUE))
         );
 
         pack();
@@ -664,53 +678,60 @@ public class ItemDescription extends javax.swing.JFrame {
 
     private void update_jButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_update_jButtonActionPerformed
         // TODO add your handling code here:
-        Object temp = this.db.updateItem(this.id, this.table_name, this.name_jTextField.getText(), this.pn_jTextField1
-                .getText(), this.sn_jTextField2.getText(), this.prn_jTextField3
-                .getText(), this.qas_jTextField4.getText(), this.sb_jTextField5
-                .getText(), this.qasys_jTextField6.getText(), this.las_jTextField7
-                .getText(), this.comments_jTextField8.getText(), this.user_name);
-
-        if (temp instanceof Exception) {
-            JOptionPane.showMessageDialog(null, "Update item: '" + this.name_jTextField.getText() + "' failed \n " + ((Exception) temp).getMessage(), "Alert", 0);
+        if (!(this.sn_jTextField2.getText().equals("") && this.qas_jTextField4.getText().equals("0")) && this.sn_jTextField2.getText().split(",").length != Integer.parseInt(this.qas_jTextField4.getText())) {
+            JOptionPane.showMessageDialog(null, "Quantity at storage not equal to the quntity of serial numbers.", "Alert", 0);
         } else {
-            for (int i = 0; i < this.item_data.length; i++) {
-                if (!this.somthing_changed && !this.item_data[i].equals(this.item_parms[i].getText())) {
-                    this.somthing_changed = true;
-                }
-            }
+            Object temp = this.db.updateItem(this.id, this.table_name, this.name_jTextField.getText(), this.pn_jTextField1
+                    .getText(), this.sn_jTextField2.getText(), this.prn_jTextField3
+                    .getText(), this.qas_jTextField4.getText(), this.sb_jTextField5
+                    .getText(), this.qasys_jTextField6.getText(), this.las_jTextField7
+                    .getText(), this.comments_jTextField8.getText(), this.user_name);
 
-            if (this.somthing_changed) {
-                this.image_id = this.db.getImageID(this.item_data[0], this.item_data[1], this.item_data[2], this.table_name);
-                if (this.image_id != null) {
-                    this.db.updateChangesForImageDB(this.image_id, this.user_name, this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name, this.path.replace("\\", "\\\\"));
+            if (temp instanceof Exception) {
+                JOptionPane.showMessageDialog(null, "Update item: '" + this.name_jTextField.getText() + "' failed \n " + ((Exception) temp).getMessage(), "Alert", 0);
+            } else {
+                for (int i = 0; i < this.item_data.length; i++) {
+                    if (!this.somthing_changed && !this.item_data[i].equals(this.item_parms[i].getText())) {
+                        this.somthing_changed = true;
+                    }
                 }
-            }
-            boolean is_update = false;
-            String db_path = this.db.getImagePath(this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name);
-            if (!this.path.equals("") && db_path != null && !db_path.equals(this.path)) {
-                is_update = true;
-                File file = new File(db_path);
-                if (file.delete()) {
-                    System.out.println("File deleted successfully");
-                    System.out.println("here 4 ");
-                } else {
-                    System.out.println("Failed to delete the file");
+
+                if (this.somthing_changed) {
+                    this.image_id = this.db.getImageID(this.item_data[0], this.item_data[1], this.item_data[2], this.table_name);
+                    if (this.image_id != null) {
+                        this.db.updateChangesForImageDB(this.image_id, this.user_name, this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name, this.path.replace("\\", "\\\\"));
+                    }
                 }
-            }
-            if (!this.path.equals("")) {
-                Object temp2 = this.db.setImage(is_update, this.user_name, this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name, this.path.replace("\\", "\\\\"));
-                if (temp2 instanceof Exception) {
-                    JOptionPane.showMessageDialog(null, "Failed to save image \n " + ((Exception) temp2).getMessage(), "Alert", 0);
-                } else {
-                    JOptionPane.showMessageDialog(null, "Image upload successful!", "information", 1);
+                boolean is_update = false;
+                String db_path = this.db.getImagePath(this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name);
+                if (!this.path.equals("") && db_path != null && !db_path.equals(this.path)) {
+                    is_update = true;
+                    File file = new File(db_path);
+                    if (file.delete()) {
+                        System.out.println("File deleted successfully");
+                        System.out.println("here 4 ");
+                    } else {
+                        System.out.println("Failed to delete the file");
+                    }
                 }
+                if (!this.path.equals("")) {
+                    Object temp2 = this.db.setImage(is_update, this.user_name, this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name, this.path.replace("\\", "\\\\"));
+                    if (temp2 instanceof Exception) {
+                        JOptionPane.showMessageDialog(null, "Failed to save image \n " + ((Exception) temp2).getMessage(), "Alert", 0);
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Image upload successful!", "information", 1);
+                    }
+                }
+                JOptionPane.showMessageDialog(null, "Update item: '" + this.name_jTextField.getText() + "' successful", "information", 1);
+                setVisible(false);
             }
-            JOptionPane.showMessageDialog(null, "Update item: '" + this.name_jTextField.getText() + "' successful", "information", 1);
-            setVisible(false);
+            this.path = "";
+            if(main != null){
+                this.main.closeItemDescFrame(this.id);
+                this.main.refreshFromOtherFrame();
+            }
         }
-        this.path = "";
-        this.main.closeItemDescFrame(this.id);
-        this.main.refreshFromOtherFrame();
+
     }//GEN-LAST:event_update_jButtonActionPerformed
 
     private void cancel_operation_jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancel_operation_jButton1ActionPerformed
@@ -837,6 +858,8 @@ public class ItemDescription extends javax.swing.JFrame {
     private javax.swing.JLabel las_jLabel7;
     private javax.swing.JTextField las_jTextField7;
     private javax.swing.JButton life_cam_jButton1;
+    private javax.swing.JCheckBox loan_jCheckBox1;
+    private javax.swing.JLabel loan_jLabel11;
     private javax.swing.JLabel name_jLabel;
     private javax.swing.JTextField name_jTextField;
     private javax.swing.JLabel pn_jLabel1;

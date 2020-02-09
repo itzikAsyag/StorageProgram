@@ -30,6 +30,9 @@ public class main extends javax.swing.JFrame {
         if (this.db.getDbName().contains("testing")) {
             this.warning_jLabel4.setText("Warning!");
         }
+         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+        this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
+      
     }
 
     /**
@@ -130,6 +133,7 @@ public class main extends javax.swing.JFrame {
             st.setAdminButtonsVisible();
             st.setUser(this.username_TF.getText());
             st.setVisible(true);
+            st.showLowQuntity();
             setVisible(false);
         }
     }//GEN-LAST:event_login_buttonActionPerformed
