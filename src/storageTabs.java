@@ -1,6 +1,5 @@
 
-import java.awt.Dimension;
-import java.awt.Toolkit;
+import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -41,9 +40,11 @@ import javax.swing.text.DefaultEditorKit;
 public class storageTabs extends javax.swing.JFrame {
 
     private boolean isAdmin;
+    private boolean dismiss = false;
     DataBase db;
     private String _user = "";
     private HashMap<String, ItemDescription> item_desc_map = new HashMap<String, ItemDescription>();
+    private HashMap<String, String[]> low_qunt_map = new HashMap<String, String[]>();
     private KeyListener kl = new KeyListener() {
         @Override
         public void keyTyped(KeyEvent ke) {
@@ -80,7 +81,6 @@ public class storageTabs extends javax.swing.JFrame {
         initComponents();
         this.setExtendedState(this.getExtendedState() | JFrame.MAXIMIZED_BOTH);
         this.isAdmin = false;
-
         this.search_textfield.addKeyListener(kl);
         this.jMenuBar1.addKeyListener(kl);
         this.tabbs.addKeyListener(kl);
@@ -137,12 +137,17 @@ public class storageTabs extends javax.swing.JFrame {
         this.sufa_jTable.getColumnModel().getColumn(1).setPreferredWidth(300);
         this.baz_raam_jTable.getColumnModel().getColumn(1).setPreferredWidth(300);
         //////////////////////////
+        
     }
 
     public void closeItemDescFrame(String id) {
         if (this.item_desc_map.containsKey(id)) {
-            this.item_desc_map.remove(id);
+            this.item_desc_map.remove(id).dispose();
         }
+    }
+    
+    public void setDissmissed(){
+        this.dismiss = true;
     }
 
     public void doubleClickBarak() {
@@ -258,6 +263,15 @@ public class storageTabs extends javax.swing.JFrame {
     public void setDB(DataBase d) {
         this.db = d;
     }
+    
+    public void showLowQuntity(){
+        if(isAdmin){
+            LowQuntityItems lqi = new LowQuntityItems(db);
+            lqi.intialMain(this);
+            lqi.setVisible(true);
+            lqi.toFront();
+        }
+    }
 
     public void setUser(String user) {
         this._user = user;
@@ -273,14 +287,22 @@ public class storageTabs extends javax.swing.JFrame {
         ArrayList<String[]> table = db.getTable(table_name);
         String[] row = new String[10];
         for (int i = 0; i < table.size(); i++) {
-            for (int j = 0; j < table.get(i).length; j++) {
+            int min_qunt = Integer.parseInt(table.get(i)[11]);
+            for (int j = 0; j < row.length; j++) {
                 row[j] = table.get(i)[j];
             }
             DefaultTableModel model = (DefaultTableModel) gui_table.getModel();
-            model.addRow(row);
+            int qunt = Integer.parseInt(row[5]);
+            if(row[1] != null && !row[1].equals("")){
+                model.addRow(row);
+            }
+            if(qunt <= min_qunt){
+                this.low_qunt_map.put(table_name, row);
+            }
         }
         //this.paintZeroToRed(gui_table);
     }
+    
 
     /*public void paintZeroToRed(JTable gui_table){
         for (int i = 0; i < gui_table.getRowCount(); i++) {
@@ -376,6 +398,18 @@ public class storageTabs extends javax.swing.JFrame {
         this.admin_menu.setVisible(isAdmin);
     }
 
+    public static boolean isInteger(String s) {
+        try {
+            Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            return false;
+        } catch (NullPointerException e) {
+            return false;
+        }
+        // only got here if we didn't return false
+        return true;
+    }
+
     public boolean getIsAdmin() {
         return this.isAdmin;
     }
@@ -432,7 +466,14 @@ public class storageTabs extends javax.swing.JFrame {
         edit_user_jMenuItem2 = new javax.swing.JMenuItem();
         delete_user_jMenuItem3 = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
-        debug_jMenuItem2 = new javax.swing.JMenuItem();
+        jMenu1 = new javax.swing.JMenu();
+        items_without_image_jMenuItem2 = new javax.swing.JMenuItem();
+        delete_items_without_image_jMenuItem3 = new javax.swing.JMenuItem();
+        items_without_serial_number_jMenuItem4 = new javax.swing.JMenuItem();
+        items_overseas_jMenu2 = new javax.swing.JMenu();
+        send_new_itam_jMenuItem2 = new javax.swing.JMenuItem();
+        view_items_jMenuItem3 = new javax.swing.JMenuItem();
+        jMenuItem2 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Hzor Storage System");
@@ -697,13 +738,61 @@ public class storageTabs extends javax.swing.JFrame {
         });
         admin_menu.add(jMenuItem1);
 
-        debug_jMenuItem2.setText("Debug");
-        debug_jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+        jMenu1.setText("Debug");
+
+        items_without_image_jMenuItem2.setText("items without image");
+        items_without_image_jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                debug_jMenuItem2ActionPerformed(evt);
+                items_without_image_jMenuItem2ActionPerformed(evt);
             }
         });
-        admin_menu.add(debug_jMenuItem2);
+        jMenu1.add(items_without_image_jMenuItem2);
+
+        delete_items_without_image_jMenuItem3.setText("delete items without image");
+        delete_items_without_image_jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                delete_items_without_image_jMenuItem3ActionPerformed(evt);
+            }
+        });
+        jMenu1.add(delete_items_without_image_jMenuItem3);
+
+        items_without_serial_number_jMenuItem4.setText("items without serial number");
+        items_without_serial_number_jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                items_without_serial_number_jMenuItem4ActionPerformed(evt);
+            }
+        });
+        jMenu1.add(items_without_serial_number_jMenuItem4);
+
+        admin_menu.add(jMenu1);
+
+        items_overseas_jMenu2.setText("Item Overseas");
+
+        send_new_itam_jMenuItem2.setText("Send new item");
+        send_new_itam_jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                send_new_itam_jMenuItem2ActionPerformed(evt);
+            }
+        });
+        items_overseas_jMenu2.add(send_new_itam_jMenuItem2);
+
+        view_items_jMenuItem3.setText("View items ");
+        view_items_jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                view_items_jMenuItem3ActionPerformed(evt);
+            }
+        });
+        items_overseas_jMenu2.add(view_items_jMenuItem3);
+
+        admin_menu.add(items_overseas_jMenu2);
+
+        jMenuItem2.setText("Low quntity items");
+        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem2ActionPerformed(evt);
+            }
+        });
+        admin_menu.add(jMenuItem2);
 
         jMenuBar1.add(admin_menu);
 
@@ -994,9 +1083,10 @@ public class storageTabs extends javax.swing.JFrame {
         lf.setVisible(true);
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
-    private void debug_jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_debug_jMenuItem2ActionPerformed
+    private void items_without_image_jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_items_without_image_jMenuItem2ActionPerformed
         // TODO add your handling code here:
-        String[] my_tables = {"barak_new" , "sufa_new" , "baz_new"};
+        this.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+        String[] my_tables = {"barak_new", "sufa_new", "baz_new"};
         String text = "";
         for (int i = 0; i < my_tables.length; i++) {
             text = text + "\n" + "============= " + my_tables[i] + "============= ";
@@ -1004,11 +1094,14 @@ public class storageTabs extends javax.swing.JFrame {
             for (int j = 0; j < table.size(); j++) {
                 String row[] = table.get(j);
                 String img_pth = this.db.getImagePath(row[1], row[2], row[3], my_tables[i]);
-                if(img_pth != null){
+                if (img_pth != null) {
                     File f = new File(img_pth);
-                    if(!f.exists()) { 
-                        text = text + "\n" + row[1] +"\t"+ row[2] +"\t"+ row[3] +"\t"+ my_tables[i];
+                    if (!f.exists()) {
+                        text = text + "\n" + row[1] + "\t" + row[2] + "\t" + row[3] + "\t" + my_tables[i] +" (file dosent exist)";
                     }
+                }
+                else{
+                    text = text + "\n" + row[1] + "\t" + row[2] + "\t" + row[3] + "\t" + my_tables[i] +" (no image)";
                 }
             }
         }
@@ -1018,12 +1111,90 @@ public class storageTabs extends javax.swing.JFrame {
             fooWriter = new FileWriter(myFoo, false); // true to append
             fooWriter.write(text);
             fooWriter.close();
+            JOptionPane.showMessageDialog(null, "File 'items without image.log' was successfully created", "Alert", JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException ex) {
             Logger.getLogger(storageTabs.class.getName()).log(Level.SEVERE, null, ex);
         }
-                                                             // false to overwrite.
-        
-    }//GEN-LAST:event_debug_jMenuItem2ActionPerformed
+        this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+    }//GEN-LAST:event_items_without_image_jMenuItem2ActionPerformed
+
+    private void items_without_serial_number_jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_items_without_serial_number_jMenuItem4ActionPerformed
+        // TODO add your handling code here:
+        this.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+        String[] my_tables = {"barak_new", "sufa_new", "baz_new"};
+        String text = "";
+        for (int i = 0; i < my_tables.length; i++) {
+            text = text + "\n" + "============= " + my_tables[i] + "============= ";
+            ArrayList<String[]> table = db.getTable(my_tables[i]);
+            for (int j = 0; j < table.size(); j++) {
+                String row[] = table.get(j);
+                if (!isInteger(row[5])) {
+                    text = text + "\n" + row[0] + "\t" + row[1] + "\t" + row[2] + "\t" + my_tables[i] + "serial number is not valid!!!!";
+                } else if ((row[3] == null || row[3].equals("")) && (row[5] != null && Integer.parseInt(row[5]) > 0)) {
+                    text = text + "\n" + row[0] + "\t" + row[1] + "\t" + row[2] + "\t" + my_tables[i];
+                }
+            }
+        }
+        File myFoo = new File("items without serial number.log");
+        FileWriter fooWriter;
+        try {
+            fooWriter = new FileWriter(myFoo, false); // true to append
+            fooWriter.write(text);
+            fooWriter.close();
+            JOptionPane.showMessageDialog(null, "File 'items without serial number.log' was successfully created", "Alert", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException ex) {
+            Logger.getLogger(storageTabs.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+    }//GEN-LAST:event_items_without_serial_number_jMenuItem4ActionPerformed
+
+    private void delete_items_without_image_jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_delete_items_without_image_jMenuItem3ActionPerformed
+        // TODO add your handling code here:
+        this.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+        String[] my_tables = {"barak_new", "sufa_new", "baz_new"};
+        for (int i = 0; i < my_tables.length; i++) {
+            ArrayList<String[]> table = db.getTable(my_tables[i]);
+            for (int j = 0; j < table.size(); j++) {
+                String row[] = table.get(j);
+                String img_pth = this.db.getImagePath(row[1], row[2], row[3], my_tables[i]);
+                if (img_pth != null && !img_pth.equals("")) {
+                    File f = new File(img_pth);
+                    if (!f.exists()) {
+                           // public synchronized Object deleteRow(String table_name, String id, String name, String user_name) {
+                           //this.db.deleteRow(table_name, id, item, user_name);
+                           this.db.deleteRow(my_tables[i], row[0], row[1], this._user);
+                    }
+                }
+                else{
+                    this.db.deleteRow(my_tables[i], row[0], row[1], this._user);
+                }
+            }
+        }
+        //pb.dispose();
+        this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+        this.refresh_jButton1ActionPerformed(evt);
+    }//GEN-LAST:event_delete_items_without_image_jMenuItem3ActionPerformed
+
+    private void send_new_itam_jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_send_new_itam_jMenuItem2ActionPerformed
+        // TODO add your handling code here:
+        SendItemOverseas sio = new SendItemOverseas();
+        sio.setDB(this.db);
+        sio.setUser(this._user);
+        sio.setVisible(true);
+    }//GEN-LAST:event_send_new_itam_jMenuItem2ActionPerformed
+
+    private void view_items_jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_view_items_jMenuItem3ActionPerformed
+        // TODO add your handling code here:
+        ItemsTracking it = new ItemsTracking();
+        it.setUser(_user);
+        it.setDB(db);
+        it.setVisible(true);
+    }//GEN-LAST:event_view_items_jMenuItem3ActionPerformed
+
+    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
+        // TODO add your handling code here:
+        this.showLowQuntity();
+    }//GEN-LAST:event_jMenuItem2ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -1074,7 +1245,7 @@ public class storageTabs extends javax.swing.JFrame {
     private javax.swing.JPanel baz_raam_jpanel;
     private javax.swing.JMenuItem copy_jMenuItem4;
     private javax.swing.JMenuItem create_new_user_jMenuItem1;
-    private javax.swing.JMenuItem debug_jMenuItem2;
+    private javax.swing.JMenuItem delete_items_without_image_jMenuItem3;
     private javax.swing.JButton delete_row_jButton;
     private javax.swing.JMenuItem delete_user_jMenuItem3;
     private javax.swing.JMenu edit_menu;
@@ -1083,8 +1254,13 @@ public class storageTabs extends javax.swing.JFrame {
     private javax.swing.JMenu file_menu;
     private javax.swing.JButton get_item_button;
     private javax.swing.JButton insert_item_button;
+    private javax.swing.JMenu items_overseas_jMenu2;
+    private javax.swing.JMenuItem items_without_image_jMenuItem2;
+    private javax.swing.JMenuItem items_without_serial_number_jMenuItem4;
+    private javax.swing.JMenu jMenu1;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
+    private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
@@ -1093,8 +1269,10 @@ public class storageTabs extends javax.swing.JFrame {
     private javax.swing.JButton refresh_jButton1;
     private javax.swing.JButton search_button;
     private javax.swing.JTextField search_textfield;
+    private javax.swing.JMenuItem send_new_itam_jMenuItem2;
     private javax.swing.JTable sufa_jTable;
     private javax.swing.JPanel sufa_jpanel;
     private javax.swing.JTabbedPane tabbs;
+    private javax.swing.JMenuItem view_items_jMenuItem3;
     // End of variables declaration//GEN-END:variables
 }
