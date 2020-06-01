@@ -1,6 +1,7 @@
 
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -9,6 +10,10 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -16,6 +21,7 @@ import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -34,8 +40,13 @@ public class insertNewItemWindow extends javax.swing.JFrame {
     private String table_name = "";
     private String user_name = "";
     private storageTabs st;
-    private String path = "";
     private WindowListener exitListener;
+    ///////////////////////////
+    private String temp_image_path;
+    private String origin_image_path;
+    private boolean image_changed = false;
+    private boolean from_cam_or_local = false; //false == local , true == from cam;
+    ///////////////////////////
 
     /**
      * Creates new form insertNewItemWindow
@@ -104,14 +115,6 @@ public class insertNewItemWindow extends javax.swing.JFrame {
     }
 
     private void cancelOperation() {
-        if (!this.path.equals("")) {
-            File file = new File(this.path);
-            if (file.delete()) {
-                System.out.println("File deleted successfully");
-            } else {
-                System.out.println("Failed to delete the file");
-            }
-        }
         this.dispose();
     }
 
@@ -149,6 +152,133 @@ public class insertNewItemWindow extends javax.swing.JFrame {
         boolean isMatch = matcher.matches();
         return isMatch;
     }
+    
+    
+    //////////////////////////////////////////////image system update START//////////////////////////////
+    public static String getFileExtension(String fullName) {
+        if(fullName != null){
+            String fileName = new File(fullName).getName();
+            int dotIndex = fileName.lastIndexOf('.');
+            return (dotIndex == -1) ? "" : fileName.substring(dotIndex + 1);
+        }
+        return null;
+    }
+    
+    /**
+     * save the image at the project root directory create directory (if not
+     * exist) for each simulator in case of photo from webcam , copy the
+     * original photo to the relevant simulator directory and delete the
+     * original photo in case of photo from local storage the same procedure but
+     * the photo will not deleted
+     *
+     * @param taken_image_path the path to the original image
+     * @param simulator simulator name
+     * @param item_id item id (from DB)
+     * @param item_pn item part number
+     * @param from_cam photo from webcam or local storage
+     * @return false in case that the rename or delete photo file methods does
+     * not succeed true in case that the rename or delete photo file methods succeed
+     * @throws IOException
+     */
+    public boolean saveImage(Path taken_image_path, String simulator, String item_id, String item_pn, Boolean from_cam) throws IOException {
+        Path dir_path = Paths.get(System.getProperty("user.dir") + File.separator + "photos" + File.separator + simulator);
+        File directory = new File(dir_path.toString() + File.separator + taken_image_path.getFileName());
+        directory.getParentFile().mkdirs();
+        Path newFilePath = directory.toPath();
+        Files.copy(taken_image_path, newFilePath , StandardCopyOption.REPLACE_EXISTING);
+        File copy_of_image_file = new File(dir_path.toString() + File.separator + taken_image_path.getFileName());
+        String file_new_name = ("__" + item_id + "-" + item_pn + "__").replaceAll("[^a-zA-Z0-9\\.\\-]", "_")+".jpg";
+        File file_exist = new File(dir_path.toString() + File.separator +file_new_name);
+        if(file_exist.exists()){
+            removeImage(file_exist.getAbsolutePath());
+        }
+        boolean rename = copy_of_image_file.renameTo(new File(dir_path.toString() + File.separator + file_new_name));
+        if (!from_cam) {
+            return rename;
+        } else if (rename && removeImage(taken_image_path.toString())) {
+            return true;
+        }
+        return false;
+    }
+    
+    public void rename(String simulator , String old_name , String new_name){
+        Path dir_path = Paths.get(System.getProperty("user.dir") + File.separator + "photos" + File.separator + simulator);
+        File origin_file = new File(dir_path.toString() + File.separator + old_name);
+        if(origin_file.renameTo(new File(dir_path.toString() + File.separator + new_name ))){
+            this.origin_image_path = dir_path.toString() + File.separator + new_name;
+        }
+    }
+
+    public boolean removeImage(String path) {
+        File myObj = new File(path);
+        if (myObj.delete()) {
+            System.out.println("Deleted the file: " + myObj.getName());
+            return true;
+        } else {
+            System.out.println("Failed to delete the file.");
+            return false;
+        }
+    }
+
+    /**
+     * load SAVED image to icon at item description window
+     *
+     * @param simulator simulator name
+     * @param item_pn item part number
+     * @param item_id item id (from DB)
+     * @param icon photo icon
+     * @return path of the loaded image
+     */
+    public String loadImage(String simulator, String item_pn, String item_id, JLabel icon) throws IOException {
+        //need to load and resize the image to icon// 
+        Path dir_path = Paths.get(System.getProperty("user.dir") + File.separator + "photos" + File.separator + simulator);
+        String file_name = ("__" + item_id + "-" + item_pn + "__").replaceAll("[^a-zA-Z0-9\\.\\-]", "_")+".jpg";
+        File file_to_load = new File(dir_path.toString() + File.separator + file_name);
+        if(file_to_load.exists() && !file_to_load.isDirectory()) { 
+            BufferedImage resize_image = resizeImage(file_to_load, icon.getWidth(), icon.getHeight());
+            icon.setIcon(new ImageIcon((Image) resize_image));
+            return file_to_load.getAbsolutePath();
+        }
+        return null;
+    }
+
+    /**
+     * load TEMP image to icon
+     *
+     * @param path
+     * @param icon
+     * @throws IOException
+     */
+    public String loadImage(File file, JLabel icon) throws IOException {
+        if(file.exists() && !file.isDirectory()) { 
+            BufferedImage resize_image = resizeImage(file, icon.getWidth(), icon.getHeight());
+            icon.setIcon(new ImageIcon((Image) resize_image));
+            return file.getAbsolutePath();
+        }
+        return null;
+    }
+
+    /**
+     * resize the original image to the icon size
+     *
+     * @param image_file image that we want to load
+     * @param IMG_WIDTH this.image_jLabel1.getWidth()
+     * @param IMG_HEIGHT this.image_jLabel1.getHeight()
+     * @return
+     * @throws IOException
+     */
+    private BufferedImage resizeImage(File image_file, int IMG_WIDTH, int IMG_HEIGHT) throws IOException {
+        BufferedImage originalImage = ImageIO.read(image_file);//change path to where file is located
+        int type = originalImage.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : originalImage.getType();
+        BufferedImage resizedImage = new BufferedImage(IMG_WIDTH, IMG_HEIGHT, type);
+        Graphics2D g = resizedImage.createGraphics();
+        g.drawImage(originalImage, 0, 0, IMG_WIDTH, IMG_HEIGHT, null);
+        g.dispose();
+
+        return resizedImage;
+    }
+    //////////////////////////////////////////////image system update  END//////////////////////////////
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -188,6 +318,8 @@ public class insertNewItemWindow extends javax.swing.JFrame {
         life_cam_jButton3 = new javax.swing.JButton();
         loan_jLabel11 = new javax.swing.JLabel();
         loan_jCheckBox1 = new javax.swing.JCheckBox();
+        minimum_quntity_jLabel12 = new javax.swing.JLabel();
+        minimum_quntity_jTextField9 = new javax.swing.JTextField();
 
         javax.swing.GroupLayout file_jPanel1Layout = new javax.swing.GroupLayout(file_jPanel1);
         file_jPanel1.setLayout(file_jPanel1Layout);
@@ -343,6 +475,15 @@ public class insertNewItemWindow extends javax.swing.JFrame {
         loan_jLabel11.setFont(new java.awt.Font("Arial", 1, 14)); // NOI18N
         loan_jLabel11.setText("Loan from IAF : ");
 
+        minimum_quntity_jLabel12.setFont(new java.awt.Font("Arial", 1, 14)); // NOI18N
+        minimum_quntity_jLabel12.setText("Minimum quntity :");
+
+        minimum_quntity_jTextField9.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                minimum_quntity_jTextField9ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -394,15 +535,19 @@ public class insertNewItemWindow extends javax.swing.JFrame {
                         .addComponent(cancel_jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(20, 20, 20)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(145, 145, 145)
-                                .addComponent(loan_jCheckBox1))
-                            .addComponent(loan_jLabel11)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(comments_jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(24, 24, 24)
-                                .addComponent(comments_jTextField8, javax.swing.GroupLayout.PREFERRED_SIZE, 206, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                .addComponent(comments_jTextField8, javax.swing.GroupLayout.PREFERRED_SIZE, 206, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(loan_jLabel11)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(loan_jCheckBox1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(minimum_quntity_jLabel12)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(minimum_quntity_jTextField9))))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(20, 20, 20)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -414,7 +559,7 @@ public class insertNewItemWindow extends javax.swing.JFrame {
                                 .addComponent(qasys_jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(9, 9, 9)
                                 .addComponent(qasys_jTextField6, javax.swing.GroupLayout.PREFERRED_SIZE, 206, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                .addContainerGap(20, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -456,12 +601,15 @@ public class insertNewItemWindow extends javax.swing.JFrame {
                     .addComponent(comments_jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(comments_jTextField8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(loan_jCheckBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(2, 2, 2)
-                        .addComponent(loan_jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 20, Short.MAX_VALUE)
+                        .addComponent(loan_jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(minimum_quntity_jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(minimum_quntity_jTextField9, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(loan_jCheckBox1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 16, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(comments_jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -537,27 +685,17 @@ public class insertNewItemWindow extends javax.swing.JFrame {
                             .getText(), this.prn_jTextField3.getText(), this.qas_jTextField4
                     .getText(), this.sb_jTextField5.getText(), this.qasys_jTextField6
                     .getText(), this.las_jTextField7.getText(), this.comments_jTextField8
-                    .getText(), this.user_name);
+                    .getText(), this.user_name ,
+                    this.minimum_quntity_jTextField9.getText().equals("") ? 0 : Integer.parseInt(this.minimum_quntity_jTextField9.getText()), this.loan_jCheckBox1.isSelected() ? 1 : 0);
             if (temp instanceof Boolean) {
-                boolean is_update = false;
-                String db_path = this.db.getImagePath(this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name);
-                if (db_path != null && !db_path.equals(this.path)) {
-                    is_update = true;
-                    File file = new File(db_path);
-                    if (file.delete()) {
-                        System.out.println("File deleted successfully");
-                    } else {
-                        System.out.println("Failed to delete the file");
+                String id = db.getItemID(this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.table_name);
+                if(this.temp_image_path != null ){
+                    try {
+                        saveImage(Paths.get(this.temp_image_path), this.table_name, id, this.pn_jTextField1.getText(), this.from_cam_or_local);
+                    } catch (IOException ex) {
+                        Logger.getLogger(insertNewItemWindow.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-                temp = this.db.setImage(is_update, this.user_name, this.name_jTextField.getText(), this.pn_jTextField1.getText(), this.sn_jTextField2.getText(), this.table_name, this.path.replace("\\", "\\\\"));
-                if (temp instanceof Exception) {
-                    JOptionPane.showMessageDialog(null, "Failed to save image \n " + ((Exception) temp).getMessage(), "Alert", 0);
-                } else {
-                    JOptionPane.showMessageDialog(null, "Image upload successful!", "information", 1);
-                }
-                JOptionPane.showMessageDialog(null, "Success!", "information", 1);
-                this.st.refresh();
                 setVisible(false);
             } else if (temp instanceof Exception) {
                 JOptionPane.showMessageDialog(null, "ERROR! \n " + ((Exception) temp).getMessage(), "Alert", 0);
@@ -567,42 +705,6 @@ public class insertNewItemWindow extends javax.swing.JFrame {
 
     private void browse_jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_browse_jButton1ActionPerformed
         // TODO add your handling code here:
-        if (!this.path.equals("")) {
-            File file = new File(this.path);
-            if (file.delete()) {
-                System.out.println("File deleted successfully");
-            } else {
-                System.out.println("Failed to delete the file");
-            }
-            this.image_jLabel2.setIcon(null);
-        }
-        /*this.jFileChooser1.addChoosableFileFilter(new FileNameExtensionFilter("Image files", ImageIO.getReaderFileSuffixes()));
-        int returnVal = this.jFileChooser1.showOpenDialog(this.file_jPanel1);
-        File file = this.jFileChooser1.getSelectedFile();
-        if (returnVal == jFileChooser1.APPROVE_OPTION && file != null) {
-            if (!isImage(file)) {
-                JOptionPane.showMessageDialog(null, "File must to be Image", "Alert", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            try {
-                BufferedImage originalImage = ImageIO.read(file);//change path to where file is located
-                int type = originalImage.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : originalImage.getType();
-
-                BufferedImage resizeImageJpg = resizeImage(originalImage, type, this.image_jLabel2.getWidth(), this.image_jLabel2.getHeight());
-                File jarDir = new File(System.getProperty("user.dir"));
-                File directory = new File(jarDir.getAbsolutePath() + "\\images");
-                if (!directory.exists()) {
-                    directory.mkdir();
-                    // If you require it to make the entire directory path including parents,
-                    // use directory.mkdirs(); here instead.
-                }
-                this.path = jarDir.getAbsolutePath() + "\\images\\" + this.pn_jTextField1.getText() + "_resized" + String.valueOf((Math.random() * (1000000 - 0)) + 0) + ".jpg";
-                ImageIO.write(resizeImageJpg, "jpg", new File(path));
-                this.image_jLabel2.setIcon(new ImageIcon(path));
-            } catch (IOException ex) {
-                Logger.getLogger(ItemDescription.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }*/
         this.jFileChooser1.addChoosableFileFilter(new FileNameExtensionFilter("Image files", ImageIO.getReaderFileSuffixes()));
         int returnVal = this.jFileChooser1.showOpenDialog(this.file_jPanel1);
         File file = this.jFileChooser1.getSelectedFile();
@@ -612,32 +714,17 @@ public class insertNewItemWindow extends javax.swing.JFrame {
                 return;
             }
             try {
-                BufferedImage originalImage = ImageIO.read(file);//change path to where file is located
-                int type = originalImage.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : originalImage.getType();
-
-                BufferedImage resizeImageJpg = resizeImage(originalImage, type, this.image_jLabel2.getWidth(), this.image_jLabel2.getHeight());
-                File jarDir = new File(System.getProperty("user.dir"));
-                File directory = new File(jarDir.getAbsolutePath() + "\\images");
-                if (!directory.exists()) {
-                    directory.mkdir();
-                    // If you require it to make the entire directory path including parents,
-                    // use directory.mkdirs(); here instead.
-                }
-                String file_name = this.pn_jTextField1.getText() + "_resized" + String.valueOf((Math.random() * (1000000 - 0)) + 0);
-                if (!isValidName(file_name)) {
-                    /// change chars to create valid file name
-                    file_name = file_name.replaceAll("[\\\\/:*?\"<>|]", "_");
-                }
-                this.path = jarDir.getAbsolutePath() + "\\images\\" + file_name + ".jpg";
-                //this.path = jarDir.getAbsolutePath() + "\\images\\" + this.pn_jTextField1.getText() + "_resized" + String.valueOf((Math.random() * (1000000 - 0)) + 0) + ".jpg";
-                ImageIO.write(resizeImageJpg, "jpg", new File(path));
-                this.image_jLabel2.setIcon(new ImageIcon(path));
+                this.temp_image_path = loadImage(file, this.image_jLabel2);
+                this.image_changed = true;
+                this.from_cam_or_local= false;
+                return;
             } catch (IOException ex) {
                 Logger.getLogger(ItemDescription.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else {
             this.browse_jButton1.setVisible(true);
         }
+        this.image_changed = false;
     }//GEN-LAST:event_browse_jButton1ActionPerformed
 
     private void life_cam_jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_life_cam_jButton3ActionPerformed
@@ -652,109 +739,27 @@ public class insertNewItemWindow extends javax.swing.JFrame {
         while (process.isAlive()) { // TODO: wait until the user close the program
 
         }
-        /*//////  WTF
-        if (!this.path.equals("")) {
-            File file = new File(this.path);
-            if (file.delete()) {
-                System.out.println("File deleted successfully");
-            } else {
-                System.out.println("Failed to delete the file");
-            }
-            this.image_jLabel1.setIcon(null);
-        }
-        ////////*/
         File last_modified_file = this.lastFileModified("C:\\Users\\Elbit Storage\\Pictures\\LifeCam Files");
         if (last_modified_file != null) {
             if (!isImage(last_modified_file)) {
                 JOptionPane.showMessageDialog(null, "File must to be Image", "Alert", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            File file = new File(this.path);
-            if (file.delete()) {
-                System.out.println("File deleted successfully");
-                System.out.println("here 1 ");
-            } else {
-                System.out.println("Failed to delete the file");
-            }
             try {
-                this.image_jLabel2.setIcon(null);
-                BufferedImage originalImage = ImageIO.read(last_modified_file);//change path to where file is located
-                int type = originalImage.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : originalImage.getType();
-
-                BufferedImage resizeImageJpg = resizeImage(originalImage, type, this.image_jLabel2.getWidth(), this.image_jLabel2.getHeight());
-                File jarDir = new File(System.getProperty("user.dir"));
-                File directory = new File(jarDir.getAbsolutePath() + "\\images");
-                if (!directory.exists()) {
-                    directory.mkdir();
-                    // If you require it to make the entire directory path including parents,
-                    // use directory.mkdirs(); here instead.
-                }
-                String file_name = this.pn_jTextField1.getText() + "_resized" + String.valueOf((Math.random() * (1000000 - 0)) + 0);
-                if (!isValidName(file_name)) {
-                    /// change chars to create valid file name
-                    file_name = file_name.replaceAll("[\\\\/:*?\"<>|]", "_");
-                }
-                this.path = jarDir.getAbsolutePath() + "\\images\\" + file_name + ".jpg";
-                ImageIO.write(resizeImageJpg, "jpg", new File(path));
-                this.image_jLabel2.setIcon(new ImageIcon(path));
-                if (last_modified_file.delete()) {
-                    System.out.println("File deleted successfully");
-                    System.out.println("here 2 ");
-                } else {
-                    System.out.println("Failed to delete the file");
-
-                }
-            } catch (IOException ex) {
-                Logger.getLogger(insertNewItemWindow.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        /*Process process = null;
-        try {
-            process = Runtime.getRuntime().exec("C:\\Program Files (x86)\\Microsoft LifeCam\\LifeCam.exe");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        while (process.isAlive());
-
-        if (!this.path.equals("")) {
-            File file = new File(this.path);
-            if (file.delete()) {
-                System.out.println("File deleted successfully");
-            } else {
-                System.out.println("Failed to delete the file");
-            }
-            this.image_jLabel2.setIcon(null);
-        }
-        File last_modified_file = lastFileModified("C:\\Users\\Elbit Storage\\Pictures\\LifeCam Files");
-        if (last_modified_file != null) {
-            if (!isImage(last_modified_file)) {
-                JOptionPane.showMessageDialog(null, "File must to be Image", "Alert", 0);
+                this.temp_image_path = loadImage(last_modified_file, this.image_jLabel2);
+                this.image_changed = true;
+                this.from_cam_or_local= true;
                 return;
-            }
-            try {
-                BufferedImage originalImage = ImageIO.read(last_modified_file);
-                int type = (originalImage.getType() == 0) ? 2 : originalImage.getType();
-
-                BufferedImage resizeImageJpg = resizeImage(originalImage, type, this.image_jLabel2.getWidth(), this.image_jLabel2.getHeight());
-                File jarDir = new File(System.getProperty("user.dir"));
-                File directory = new File(jarDir.getAbsolutePath() + "\\images");
-                if (!directory.exists()) {
-                    directory.mkdir();
-                }
-
-                this.path = jarDir.getAbsolutePath() + "\\images\\" + this.pn_jTextField1.getText() + "_resized" + String.valueOf(Math.random() * 1000000.0D + 0.0D) + ".jpg";
-                ImageIO.write(resizeImageJpg, "jpg", new File(this.path));
-                this.image_jLabel2.setIcon(new ImageIcon(this.path));
-                if (last_modified_file.delete()) {
-                    System.out.println("File deleted successfully");
-                } else {
-                    System.out.println("Failed to delete the file");
-                }
             } catch (IOException ex) {
                 Logger.getLogger(insertNewItemWindow.class.getName()).log(Level.SEVERE, null, ex);
             }
-        }*/
+        }
+        this.image_changed = false;
     }//GEN-LAST:event_life_cam_jButton3ActionPerformed
+
+    private void minimum_quntity_jTextField9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_minimum_quntity_jTextField9ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_minimum_quntity_jTextField9ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -807,6 +812,8 @@ public class insertNewItemWindow extends javax.swing.JFrame {
     private javax.swing.JButton life_cam_jButton3;
     private javax.swing.JCheckBox loan_jCheckBox1;
     private javax.swing.JLabel loan_jLabel11;
+    private javax.swing.JLabel minimum_quntity_jLabel12;
+    private javax.swing.JTextField minimum_quntity_jTextField9;
     private javax.swing.JLabel name_jLabel;
     private javax.swing.JTextField name_jTextField;
     private javax.swing.JLabel pn_jLabel1;

@@ -455,7 +455,7 @@ public class SendItemOverseas extends javax.swing.JFrame {
                 attach, this.sn_jTextField2.getText(), this.location_jTextField4.getText(),
                 this.sd_jTextField3.getText(), this.dr_jTextField8.getText(),
                 this.simulator_jTextField7.getText(), this.wn_jTextField6.getText(),
-                this.comments_jTextField5.getText(), _user);
+                this.comments_jTextField5.getText(), _user , 0 , 0); // 0 , 0 sent but the function updateItem ignore that ; 
         if (temp instanceof Boolean) {
             JOptionPane.showMessageDialog(null, "Success!", "information", 1);
             this.dispose();
