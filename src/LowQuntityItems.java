@@ -128,7 +128,7 @@ public class LowQuntityItems extends javax.swing.JFrame {
         id.setDB(db);
         id.intialMain(this.main);
         id.setTableName(this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase() + "_new");
-        id.inserData(data);
+        id.insertData(data);
         id.setVisible(true);
 
     }
@@ -151,7 +151,7 @@ public class LowQuntityItems extends javax.swing.JFrame {
         id.setDB(db);
         id.isBaz();
         id.setTableName(this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase() + "_new");
-        id.inserData(data);
+        id.insertData(data);
         id.setVisible(true);
     }
 
@@ -171,7 +171,7 @@ public class LowQuntityItems extends javax.swing.JFrame {
         id.setAdmin(this.isAdmin);
         id.setDB(db);
         id.setTableName(this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase() + "_new");
-        id.inserData(data);
+        id.insertData(data);
         id.setVisible(true);
 
     }

@@ -2,6 +2,8 @@
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import javax.swing.JOptionPane;
 
 /*
@@ -32,7 +34,26 @@ public class main extends javax.swing.JFrame {
         }
          Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
         this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
-      
+        this.username_TF.addFocusListener(new FocusListener() {
+                @Override
+                public void focusGained(FocusEvent fe) {
+                    username_TF.selectAll();                
+                }
+
+                @Override
+                public void focusLost(FocusEvent fe) {
+                }
+            });
+        this.password_field.addFocusListener(new FocusListener() {
+                @Override
+                public void focusGained(FocusEvent fe) {
+                    password_field.selectAll();                
+                }
+
+                @Override
+                public void focusLost(FocusEvent fe) {
+                }
+            });
     }
 
     /**

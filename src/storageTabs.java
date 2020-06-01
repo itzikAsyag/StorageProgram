@@ -1,6 +1,12 @@
 
 import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
@@ -9,6 +15,10 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -18,9 +28,11 @@ import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
@@ -137,7 +149,7 @@ public class storageTabs extends javax.swing.JFrame {
         this.sufa_jTable.getColumnModel().getColumn(1).setPreferredWidth(300);
         this.baz_raam_jTable.getColumnModel().getColumn(1).setPreferredWidth(300);
         //////////////////////////
-        
+
     }
 
     public void closeItemDescFrame(String id) {
@@ -145,8 +157,8 @@ public class storageTabs extends javax.swing.JFrame {
             this.item_desc_map.remove(id).dispose();
         }
     }
-    
-    public void setDissmissed(){
+
+    public void setDissmissed() {
         this.dismiss = true;
     }
 
@@ -169,7 +181,7 @@ public class storageTabs extends javax.swing.JFrame {
             id.setUserName(this._user);
             id.setDB(db);
             id.setTableName(this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase() + "_new");
-            id.inserData(data);
+            id.insertData(data);
             id.setVisible(true);
             item_desc_map.put(table.getValueAt(table.getSelectedRow(), 0).toString(), id);
             //id.setAlwaysOnTop(true);
@@ -183,6 +195,17 @@ public class storageTabs extends javax.swing.JFrame {
     public void refreshFromOtherFrame() {
         ActionEvent evt = null;
         this.search_buttonActionPerformed(evt);
+    }
+
+    public boolean removeImage(String path) {
+        File myObj = new File(path);
+        if (myObj.delete()) {
+            System.out.println("Deleted the file: " + myObj.getName());
+            return true;
+        } else {
+            System.out.println("Failed to delete the file.");
+            return false;
+        }
     }
 
     public void doubleClickBaz() {
@@ -205,7 +228,7 @@ public class storageTabs extends javax.swing.JFrame {
             id.setDB(db);
             id.isBaz();
             id.setTableName(this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase() + "_new");
-            id.inserData(data);
+            id.insertData(data);
             id.setVisible(true);
             item_desc_map.put(table.getValueAt(table.getSelectedRow(), 0).toString(), id);
             //id.setAlwaysOnTop(true);
@@ -233,7 +256,7 @@ public class storageTabs extends javax.swing.JFrame {
             id.setAdmin(this.isAdmin);
             id.setDB(db);
             id.setTableName(this.tabbs.getTitleAt(this.tabbs.getSelectedIndex()).toLowerCase() + "_new");
-            id.inserData(data);
+            id.insertData(data);
             id.setVisible(true);
             item_desc_map.put(table.getValueAt(table.getSelectedRow(), 0).toString(), id);
             //id.setAlwaysOnTop(true);
@@ -263,9 +286,9 @@ public class storageTabs extends javax.swing.JFrame {
     public void setDB(DataBase d) {
         this.db = d;
     }
-    
-    public void showLowQuntity(){
-        if(isAdmin){
+
+    public void showLowQuntity() {
+        if (isAdmin) {
             LowQuntityItems lqi = new LowQuntityItems(db);
             lqi.intialMain(this);
             lqi.setVisible(true);
@@ -293,16 +316,16 @@ public class storageTabs extends javax.swing.JFrame {
             }
             DefaultTableModel model = (DefaultTableModel) gui_table.getModel();
             int qunt = Integer.parseInt(row[5]);
-            if(row[1] != null && !row[1].equals("")){
+            if (row[1] != null && !row[1].equals("")) {
                 model.addRow(row);
             }
-            if(qunt <= min_qunt){
+            if (qunt <= min_qunt) {
                 this.low_qunt_map.put(table_name, row);
             }
         }
         //this.paintZeroToRed(gui_table);
     }
-    
+
 
     /*public void paintZeroToRed(JTable gui_table){
         for (int i = 0; i < gui_table.getRowCount(); i++) {
@@ -328,7 +351,7 @@ public class storageTabs extends javax.swing.JFrame {
         model.setRowCount(0);
         String[] row = new String[10];
         for (int i = 0; i < table.size(); i++) {
-            for (int j = 0; j < table.get(i).length; j++) {
+            for (int j = 0; j < row.length; j++) {
                 row[j] = table.get(i)[j];
             }
             //DefaultTableModel model = (DefaultTableModel) gui_table.getModel();
@@ -470,6 +493,7 @@ public class storageTabs extends javax.swing.JFrame {
         items_without_image_jMenuItem2 = new javax.swing.JMenuItem();
         delete_items_without_image_jMenuItem3 = new javax.swing.JMenuItem();
         items_without_serial_number_jMenuItem4 = new javax.swing.JMenuItem();
+        convert_jMenuItem3 = new javax.swing.JMenuItem();
         items_overseas_jMenu2 = new javax.swing.JMenu();
         send_new_itam_jMenuItem2 = new javax.swing.JMenuItem();
         view_items_jMenuItem3 = new javax.swing.JMenuItem();
@@ -764,6 +788,14 @@ public class storageTabs extends javax.swing.JFrame {
         });
         jMenu1.add(items_without_serial_number_jMenuItem4);
 
+        convert_jMenuItem3.setText("convert images to new file system");
+        convert_jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                convert_jMenuItem3ActionPerformed(evt);
+            }
+        });
+        jMenu1.add(convert_jMenuItem3);
+
         admin_menu.add(jMenu1);
 
         items_overseas_jMenu2.setText("Item Overseas");
@@ -872,23 +904,63 @@ public class storageTabs extends javax.swing.JFrame {
                     JOptionPane.showMessageDialog(null, "quntity at storage for item '" + table.getValueAt(table.getSelectedRow(), 1).toString() + "' is 0", "Alert", 0);
                 } else {
 
-                    JPanel panel = new JPanel();
-                    int option_int = JOptionPane.showOptionDialog(null, panel, "Which serial you take?", 1, -1, null, (Object[]) item_serials, null);
-
-                    if (option_int >= 0) {
-                        String taken_serial = item_serials[option_int];
+                    //////////////
+                    JPanel panel = new JPanel(new GridBagLayout());
+                    GridBagConstraints c = new GridBagConstraints();
+                    c.gridx = 0;
+                    c.gridy = 0;
+                    //panel.add(new JLabel("Multiple serials insert availbale by split char ',' (for example 1,2) /n S.N  : "));
+                    JLabel l = new JLabel("<html>Hold <font color='red'>Ctrl</font> button and then <font color='red'>Left mouse click</font> for multiple selection<html>");
+                    l.setFont(new Font("Dialog", Font.BOLD, 13));
+                    panel.add(l, c);
+                    c.gridy = 1;
+                    JList list1 = new JList(item_serials) {
+                        @Override
+                        public Dimension getPreferredScrollableViewportSize() {
+                            Dimension size = super.getPreferredScrollableViewportSize();
+                            size.width = l.getPreferredSize().width;
+                            return size;
+                        }
+                    };
+                    //Dimension d = l.getPreferredSize();
+                    //list1.setPreferredSize(d);
+                    JScrollPane jscrollpane = new JScrollPane();
+                    jscrollpane.setViewportView(list1);
+                    panel.add(jscrollpane, c);
+                    int n = JOptionPane.showOptionDialog(
+                            null, panel,
+                            "Reduce Quntity (" + name + ")", JOptionPane.OK_CANCEL_OPTION,
+                            JOptionPane.PLAIN_MESSAGE, null, null, null);
+                    //JOptionPane.showMessageDialog(null, panel, "Reduce Quntity ("+name+")", JOptionPane.PLAIN_MESSAGE);
+                    int[] taken_serials_index = list1.getSelectedIndices();
+                    String[] taken_serials = new String[taken_serials_index.length];
+                    for (int i = 0; i < taken_serials_index.length; i++) {
+                        taken_serials[i] = item_serials[taken_serials_index[i]];
+                    }
+                    /*
+                    JList list2 = new JList(item_serials);
+                    JScrollPane jscrollpane=new JScrollPane();
+                    jscrollpane.setViewportView(list2);
+                    JOptionPane.showMessageDialog(null, jscrollpane, "Select Value", JOptionPane.PLAIN_MESSAGE);
+                     */
+                    //////////////
+                    /*JPanel panel = new JPanel();
+                    //int option_int = JOptionPane.showOptionDialog(null, panel, "Which serial you take?", 1, -1, null, (Object[]) item_serials, null);
+                    String taken_serial =  (String) JOptionPane.showInputDialog(null,  
+                                    "Which serial you take?\n Select number:", "Reduce Quntity ("+name+")",  
+                                    JOptionPane.PLAIN_MESSAGE, null, item_serials, "Numbers"); */
+                    if (n != JOptionPane.CANCEL_OPTION && taken_serials != null && taken_serials.length > 0) {
                         List<String> list = new ArrayList<>(Arrays.asList(item_serials));
-                        list.remove(taken_serial);
                         item_serials = list.toArray(new String[0]);
-                        String update_serials = String.join(",", (CharSequence[]) item_serials);
-                        int one = -1;
+                        list.removeAll(Arrays.asList(taken_serials));
+                        StringBuilder builder = new StringBuilder();
+                        for (String value : list) {
+                            builder.append(value + ",");
+                        }
+                        String update_serials = builder.toString();
+                        int one = -(taken_serials_index.length);
                         String user_name = this._user;
                         Object temp = this.db.updateItemQuntity(table_name, id, one, user_name, update_serials);
-                        String image_path = db.getImagePath(name, pn, sn, table_name);
-                        String image_id = db.getImageID(name, pn, sn, table_name);
-                        if (image_id != null) {
-                            this.db.updateChangesForImageDB(image_id, user_name, name, pn, update_serials, table_name, image_path);
-                        }
                         if (temp instanceof Exception) {
                             JOptionPane.showMessageDialog(null, "quntity at storage for item '" + table.getValueAt(table.getSelectedRow(), 1).toString() + "' is 0 \n " + ((Exception) temp).getMessage(), "Alert", 0);
                         } else {
@@ -919,32 +991,58 @@ public class storageTabs extends javax.swing.JFrame {
             String[] item_serials = this.db.getItemSerials(table_name, id);
             Object[] options = {"insert", "cancel"};
 
-            JPanel panel = new JPanel();
-            panel.add(new JLabel("S.N  : "));
+            JPanel panel = new JPanel(new GridBagLayout());
+            GridBagConstraints c = new GridBagConstraints();
+            c.gridx = 0;
+            c.gridy = 0;
+            //panel.add(new JLabel("Multiple serials insert availbale by split char ',' (for example 1,2) /n S.N  : "));
+            JLabel l = new JLabel("<html>Multiple serials insert availbale by split char '<font color='red'>,</font>' (for example 1,2)</html>");
+            l.setFont(new Font("Dialog", Font.BOLD, 13));
+            panel.add(l, c);
             JTextField new_serial_textField = new JTextField(16);
-            panel.add(new_serial_textField);
-            int option_int = JOptionPane.showOptionDialog(null, panel, "Enter serial number", 1, -1, null, options, null);
+            new_serial_textField.setHorizontalAlignment(JTextField.CENTER);
+            c.gridy = 1;
+            new_serial_textField.setText("Enter serial(s) number");
+            new_serial_textField.addFocusListener(new FocusListener() {
+                @Override
+                public void focusGained(FocusEvent fe) {
+                    new_serial_textField.selectAll();
+                }
 
+                @Override
+                public void focusLost(FocusEvent fe) {
+                }
+            });
+            panel.add(new_serial_textField, c);
+            int option_int = JOptionPane.showOptionDialog(null, panel, "Enter serial number (" + name + ")", 1, -1, null, options, null);
             if (option_int == 0) {
                 List<String> list = new ArrayList<>(Arrays.asList(item_serials));
-                if (list.contains(new_serial_textField.getText())) {
-                    JOptionPane.showMessageDialog(null, "Serial number alredy exist", "Alert", 0);
-                } else if (new_serial_textField.getText().equals("")) {
+                boolean contain = false;
+                if (new_serial_textField.getText().equals("")) {
                     JOptionPane.showMessageDialog(null, "Serial number cannot be blank", "Alert", 0);
                 } else {
-
-                    list.add(new_serial_textField.getText());
+                    for (String serial : new_serial_textField.getText().split(",")) {
+                        if (list.contains(serial)) {
+                            JOptionPane.showMessageDialog(null, "Serial number (" + serial + ") alredy exist", "Alert", 0);
+                            contain = true;
+                            break;
+                        }
+                    }
+                }
+                if (!contain) {
+                    ////////
+                    String[] new_serial_arr = new_serial_textField.getText().split(",");
+                    for (String str : new_serial_arr) {
+                        list.add(str);
+                    }
+                    ////////
+                    //list.add(new_serial_textField.getText());
                     item_serials = list.toArray(new String[0]);
                     String update_serials = String.join(",", (CharSequence[]) item_serials);
 
-                    int one = 1;
+                    int one = new_serial_arr.length;
                     String user_name = this._user;
                     Object temp = this.db.updateItemQuntity(table_name, id, one, user_name, update_serials);
-                    String image_path = db.getImagePath(name, pn, sn, table_name);
-                    String image_id = db.getImageID(name, pn, sn, table_name);
-                    if (image_id != null) {
-                        this.db.updateChangesForImageDB(image_id, user_name, name, pn, update_serials, table_name, image_path);
-                    }
                     if (temp instanceof Exception) {
                         JOptionPane.showMessageDialog(null, "Error! \n " + ((Exception) temp).getMessage(), "Alert", 0);
                     }
@@ -975,6 +1073,12 @@ public class storageTabs extends javax.swing.JFrame {
         String id = table.getValueAt(table.getSelectedRow(), 0).toString();
         String item = table.getValueAt(table.getSelectedRow(), 1).toString();
         String user_name = this._user;
+        String name = table.getValueAt(table.getSelectedRow(), 1).toString();
+        String pn = table.getValueAt(table.getSelectedRow(), 2).toString();
+        Path dir_path = Paths.get(System.getProperty("user.dir") + File.separator + "photos" + File.separator + table_name);
+        String file_new_name = ("__" + id + "-" + pn + "__").replaceAll("[^a-zA-Z0-9\\.\\-]", "_") + ".jpg";
+        String img_pth = dir_path.toString() + File.separator + file_new_name;
+        this.removeImage(img_pth);
         Object temp = this.db.deleteRow(table_name, id, item, user_name);
         if (temp instanceof Exception) {
             JOptionPane.showMessageDialog(null, "ERROR! \n " + ((Exception) temp).getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);
@@ -1093,15 +1197,16 @@ public class storageTabs extends javax.swing.JFrame {
             ArrayList<String[]> table = db.getTable(my_tables[i]);
             for (int j = 0; j < table.size(); j++) {
                 String row[] = table.get(j);
-                String img_pth = this.db.getImagePath(row[1], row[2], row[3], my_tables[i]);
+                Path dir_path = Paths.get(System.getProperty("user.dir") + File.separator + "photos" + File.separator + my_tables[i]);
+                String file_new_name = ("__" + row[0] + "-" + row[2] + "__").replaceAll("[^a-zA-Z0-9\\.\\-]", "_") + ".jpg";
+                String img_pth = dir_path.toString() + File.separator + file_new_name;
                 if (img_pth != null) {
                     File f = new File(img_pth);
                     if (!f.exists()) {
-                        text = text + "\n" + row[1] + "\t" + row[2] + "\t" + row[3] + "\t" + my_tables[i] +" (file dosent exist)";
+                        text = text + "\n" + row[0] + "\t" + row[1] + "\t" + row[2] + "\t" + row[3] + "\t" + my_tables[i] + " (file dosent exist)";
                     }
-                }
-                else{
-                    text = text + "\n" + row[1] + "\t" + row[2] + "\t" + row[3] + "\t" + my_tables[i] +" (no image)";
+                } else {
+                    text = text + "\n" + row[1] + "\t" + row[2] + "\t" + row[3] + "\t" + my_tables[i] + " (no image)";
                 }
             }
         }
@@ -1150,29 +1255,37 @@ public class storageTabs extends javax.swing.JFrame {
 
     private void delete_items_without_image_jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_delete_items_without_image_jMenuItem3ActionPerformed
         // TODO add your handling code here:
-        this.setCursor(new Cursor(Cursor.WAIT_CURSOR));
-        String[] my_tables = {"barak_new", "sufa_new", "baz_new"};
-        for (int i = 0; i < my_tables.length; i++) {
-            ArrayList<String[]> table = db.getTable(my_tables[i]);
-            for (int j = 0; j < table.size(); j++) {
-                String row[] = table.get(j);
-                String img_pth = this.db.getImagePath(row[1], row[2], row[3], my_tables[i]);
-                if (img_pth != null && !img_pth.equals("")) {
-                    File f = new File(img_pth);
-                    if (!f.exists()) {
-                           // public synchronized Object deleteRow(String table_name, String id, String name, String user_name) {
-                           //this.db.deleteRow(table_name, id, item, user_name);
-                           this.db.deleteRow(my_tables[i], row[0], row[1], this._user);
+        int confirm = JOptionPane.showOptionDialog(
+                null, "Are you sure you want to delete items?",
+                "Exit Confirmation", JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE, null, null, null);
+        if (confirm == 0) {
+            this.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+            String[] my_tables = {"barak_new", "sufa_new", "baz_new"};
+            for (int i = 0; i < my_tables.length; i++) {
+                ArrayList<String[]> table = db.getTable(my_tables[i]);
+                for (int j = 0; j < table.size(); j++) {
+                    String row[] = table.get(j);
+                    Path dir_path = Paths.get(System.getProperty("user.dir") + File.separator + "photos" + File.separator + my_tables[i]);
+                    String file_new_name = ("__" + row[0] + "-" + row[2] + "__").replaceAll("[^a-zA-Z0-9\\.\\-]", "_") + ".jpg";
+                    String img_pth = dir_path.toString() + File.separator + file_new_name;
+                    if (img_pth != null && !img_pth.equals("")) {
+                        File f = new File(img_pth);
+                        if (!f.exists()) {
+                            // public synchronized Object deleteRow(String table_name, String id, String name, String user_name) {
+                            //this.db.deleteRow(table_name, id, item, user_name);
+                            this.db.deleteRow(my_tables[i], row[0], row[1], this._user);
+                        }
+                    } else {
+                        this.db.deleteRow(my_tables[i], row[0], row[1], this._user);
                     }
                 }
-                else{
-                    this.db.deleteRow(my_tables[i], row[0], row[1], this._user);
-                }
             }
+            //pb.dispose();
+            this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+            this.refresh_jButton1ActionPerformed(evt);
         }
-        //pb.dispose();
-        this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-        this.refresh_jButton1ActionPerformed(evt);
+
     }//GEN-LAST:event_delete_items_without_image_jMenuItem3ActionPerformed
 
     private void send_new_itam_jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_send_new_itam_jMenuItem2ActionPerformed
@@ -1195,6 +1308,54 @@ public class storageTabs extends javax.swing.JFrame {
         // TODO add your handling code here:
         this.showLowQuntity();
     }//GEN-LAST:event_jMenuItem2ActionPerformed
+
+    
+    public boolean saveImage(Path taken_image_path, String simulator, String item_id, String item_pn) throws IOException {
+        Path dir_path = Paths.get(System.getProperty("user.dir") + File.separator + "photos" + File.separator + simulator);
+        File directory = new File(dir_path.toString() + File.separator + taken_image_path.getFileName());
+        if(directory.exists()){
+            return false;
+        }
+        directory.getParentFile().mkdirs();
+        Path newFilePath = directory.toPath();
+        Files.copy(taken_image_path, newFilePath , StandardCopyOption.REPLACE_EXISTING);
+        File copy_of_image_file = new File(dir_path.toString() + File.separator + taken_image_path.getFileName());
+        String file_new_name = ("__" + item_id + "-" + item_pn + "__").replaceAll("[^a-zA-Z0-9\\.\\-]", "_")+".jpg";
+        File file_exist = new File(dir_path.toString() + File.separator +file_new_name);
+        if(file_exist.exists()){
+            removeImage(file_exist.getAbsolutePath());
+        }
+        boolean rename = copy_of_image_file.renameTo(new File(dir_path.toString() + File.separator + file_new_name));
+        return rename;
+
+    }
+    
+    private void convert_jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_convert_jMenuItem3ActionPerformed
+        // TODO add your handling code here:
+        this.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+        String[] my_tables = {"barak_new", "sufa_new", "baz_new"};
+        for (int i = 0; i < my_tables.length; i++) {
+            ArrayList<String[]> table = db.getTable(my_tables[i]);
+            String f_path = System.getProperty("user.dir") + File.separator + "photos" + File.separator + my_tables[i];
+            File folder = new File(System.getProperty("user.dir") + File.separator + "images");
+            File[] listOfFiles = folder.listFiles();
+            for (int j = 0; j < table.size(); j++) {
+                String row[] = table.get(j);
+                for (int k = 0; k < listOfFiles.length; k++) {
+                    String filename = listOfFiles[k].getName();
+                    if(filename.startsWith(row[2]+"_")){
+                        Path dir_path = Paths.get(System.getProperty("user.dir") + File.separator + "images" + File.separator + filename);
+                        try {
+                            this.saveImage(dir_path , my_tables[i], row[0], row[2]);
+                        } catch (IOException ex) {
+                            Logger.getLogger(storageTabs.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+            }
+        }
+        this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+    }//GEN-LAST:event_convert_jMenuItem3ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -1243,6 +1404,7 @@ public class storageTabs extends javax.swing.JFrame {
     private javax.swing.JPanel barak_jpanel;
     private javax.swing.JTable baz_raam_jTable;
     private javax.swing.JPanel baz_raam_jpanel;
+    private javax.swing.JMenuItem convert_jMenuItem3;
     private javax.swing.JMenuItem copy_jMenuItem4;
     private javax.swing.JMenuItem create_new_user_jMenuItem1;
     private javax.swing.JMenuItem delete_items_without_image_jMenuItem3;
